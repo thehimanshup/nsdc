@@ -1,0 +1,2673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Console — Gov Services Multi-Agent</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  background: #f4f6f8;
+  color: #1f2937;
+}
+header {
+  background: linear-gradient(135deg, #1F3864 0%, #2E75B6 100%);
+  color: #fff;
+  padding: 18px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+header .brand { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
+header .brand small { font-size: 12px; font-weight: 400; opacity: 0.75; margin-left: 8px; }
+header .pill {
+  background: rgba(255,255,255,0.18);
+  padding: 5px 12px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-family: monospace;
+}
+
+nav.tabs {
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0 24px;
+  display: flex;
+  gap: 4px;
+}
+nav.tabs button {
+  border: none;
+  background: none;
+  padding: 14px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.15s;
+}
+nav.tabs button:hover { color: #1F3864; }
+nav.tabs button.active {
+  color: #1F3864;
+  border-bottom-color: #2E75B6;
+}
+
+main {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+.card-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-header h2 { font-size: 16px; font-weight: 700; color: #111827; }
+.card-body { padding: 18px 20px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 10px 16px; border-bottom: 1px solid #f3f4f6; }
+th { background: #f9fafb; font-weight: 600; color: #374151; text-transform: uppercase; font-size: 11px; letter-spacing: 0.4px; }
+td .em { font-size: 18px; }
+
+.btn {
+  border: none;
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-primary { background: #2E75B6; color: #fff; }
+.btn-primary:hover { background: #1F3864; }
+.btn-secondary { background: #e5e7eb; color: #374151; }
+.btn-secondary:hover { background: #d1d5db; }
+.btn-danger { background: #dc2626; color: #fff; }
+.btn-danger:hover { background: #991b1b; }
+.btn-success { background: #16a34a; color: #fff; }
+.btn-success:hover { background: #15803d; }
+.btn-warning { background: #f59e0b; color: #fff; }
+.btn-warning:hover { background: #d97706; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.tag-pinned { background: #fef3c7; color: #92400e; }
+/* Phase 6d — enable/disable toggle switch */
+.agent-toggle { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+.agent-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.agent-toggle-slider { position: relative; display: inline-block; width: 32px; height: 18px; background: #d1d5db; border-radius: 9px; transition: background 0.2s; }
+.agent-toggle-slider::after { content: ""; position: absolute; left: 2px; top: 2px; width: 14px; height: 14px; background: #fff; border-radius: 50%; transition: left 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+.agent-toggle input:checked + .agent-toggle-slider { background: #16a34a; }
+.agent-toggle input:checked + .agent-toggle-slider::after { left: 16px; }
+.agent-toggle-label { font-size: 11px; font-weight: 600; color: #374151; min-width: 42px; }
+.agent-toggle input:checked ~ .agent-toggle-label { color: #16a34a; }
+.agent-toggle input:not(:checked) ~ .agent-toggle-label { color: #9ca3af; }
+.tag-active { background: #dcfce7; color: #166534; }
+.tag-draft { background: #e0e7ff; color: #3730a3; }
+.tag-pending { background: #fef3c7; color: #92400e; }
+.tag-approved { background: #d1fae5; color: #065f46; }
+.tag-sent { background: #dbeafe; color: #1e40af; }
+.tag-rejected { background: #fee2e2; color: #991b1b; }
+.tag-mock { background: #f3f4f6; color: #6b7280; }
+
+/* Tools page — accordion rows, agent pills, filters */
+.tool-filter-row { display:flex; align-items:center; gap:12px; margin-top:12px; flex-wrap:wrap; }
+.tool-filter-chips { display:flex; gap:6px; flex-wrap:wrap; }
+.chip { border:1px solid #d1d5db; background:#fff; color:#374151; padding:5px 11px; border-radius:14px; font-size:12px; font-weight:600; cursor:pointer; }
+.chip:hover { border-color:#2E75B6; }
+.chip.on { background:#1F3864; border-color:#1F3864; color:#fff; }
+.tools-search { flex:1; min-width:220px; max-width:420px; }
+.tool-cat .card-body { padding: 12px 14px; }
+.tool-item { border:1px solid #e5e7eb; border-radius:8px; margin-bottom:10px; background:#fff; overflow:hidden; transition:border-color .15s, box-shadow .15s; }
+.tool-item:last-child { margin-bottom:0; }
+.tool-item[open] { border-color:#2E75B6; box-shadow:0 2px 8px rgba(46,117,182,0.10); }
+.tool-item.disabled { background:#fafafa; }
+.tool-item.disabled .ts-name { color:#9ca3af; }
+.tool-item.dirty { border-color:#f59e0b; box-shadow:0 0 0 1px #f59e0b inset; }
+.tool-summary { display:flex; align-items:center; gap:12px; padding:11px 14px; cursor:pointer; list-style:none; }
+.tool-summary::-webkit-details-marker { display:none; }
+.tool-summary:hover { background:#f9fafb; }
+.tool-summary .ts-main { flex:1; min-width:0; }
+.tool-summary .ts-name { font-weight:700; color:#111827; font-size:14px; }
+.tool-summary .ts-id { font-family:'Consolas','Menlo',monospace; font-size:11px; color:#9ca3af; }
+.tool-chip-count { background:#eff6ff; color:#1F3864; border-radius:10px; padding:3px 11px; font-size:11px; font-weight:700; white-space:nowrap; }
+.tool-chip-count.none { background:#fef2f2; color:#991b1b; }
+.tool-chevron { color:#9ca3af; transition:transform .2s; font-size:11px; }
+.tool-item[open] .tool-chevron { transform:rotate(90deg); }
+.tool-detail { padding:2px 16px 16px; border-top:1px solid #f3f4f6; }
+.tool-desc { font-size:12px; color:#6b7280; margin:12px 0; line-height:1.45; }
+.tool-warn { font-size:12px; color:#92400e; background:#fffbeb; border:1px solid #fde68a; border-radius:6px; padding:7px 10px; margin-bottom:10px; }
+.agent-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(132px, 1fr)); gap:8px; margin-bottom:14px; }
+.agent-pill { display:flex; align-items:center; gap:7px; padding:7px 10px; border:1px solid #e5e7eb; border-radius:8px; font-size:12px; cursor:pointer; user-select:none; transition:all .12s; white-space:nowrap; }
+.agent-pill:hover { border-color:#2E75B6; }
+.agent-pill input { width:15px; height:15px; flex-shrink:0; cursor:pointer; margin:0; }
+.agent-pill.on { background:#eff6ff; border-color:#2E75B6; color:#1F3864; font-weight:600; }
+.tool-detail-actions { display:flex; align-items:center; gap:8px; }
+.agent-select-helpers { margin-left:auto; font-size:11px; color:#9ca3af; }
+.agent-select-helpers a { color:#2E75B6; cursor:pointer; font-weight:600; }
+.agent-select-helpers a:hover { text-decoration:underline; }
+.tf-field { margin-bottom:10px; }
+
+label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin: 12px 0 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+input, select, textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+}
+input:focus, select:focus, textarea:focus { outline: 2px solid #2E75B6; outline-offset: -1px; border-color: transparent; }
+textarea { resize: vertical; min-height: 80px; }
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 20px;
+}
+.modal {
+  background: #fff; border-radius: 12px; max-width: 720px; width: 100%;
+  max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+.modal-header { padding: 18px 20px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+.modal-header h3 { font-size: 17px; color: #111827; }
+.modal-body { padding: 20px; }
+.modal-footer { padding: 14px 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 8px; background: #f9fafb; }
+.close-btn { background: none; border: none; font-size: 22px; cursor: pointer; color: #9ca3af; line-height: 1; }
+.close-btn:hover { color: #374151; }
+
+.checkbox-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+.checkbox-row input[type=checkbox] { width: 16px; height: 16px; flex-shrink: 0; }
+.checkbox-row label { display: inline; margin: 0; text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 13px; }
+
+.empty { padding: 40px; text-align: center; color: #9ca3af; font-size: 14px; }
+
+.voice-card { padding: 14px; border: 1px solid #e5e7eb; border-radius: 8px; cursor: pointer; transition: all 0.15s; }
+.voice-card:hover { border-color: #2E75B6; transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+.voice-card.active { border-color: #2E75B6; background: #eff6ff; }
+.voice-card .v-name { font-size: 15px; font-weight: 700; color: #1F3864; }
+.voice-card .v-meta { font-size: 11px; color: #6b7280; margin: 4px 0 8px; }
+.voice-card .v-play { font-size: 12px; }
+
+.metric-tile { padding: 16px; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius: 10px; }
+.metric-tile .m-value { font-size: 26px; font-weight: 800; color: #1F3864; }
+.metric-tile .m-label { font-size: 11px; color: #6b7280; text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px; }
+
+.code { font-family: 'Consolas', 'Menlo', monospace; font-size: 12px; background: #f9fafb; padding: 8px 10px; border-radius: 6px; color: #374151; white-space: pre-wrap; word-break: break-all; }
+
+.coord-step {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px; border-radius: 8px;
+  background: #f9fafb; margin-bottom: 8px;
+}
+.coord-step.done { background: #ecfdf5; }
+.coord-step.current { background: #fef3c7; border: 1px solid #fbbf24; }
+.coord-step-num { width: 28px; height: 28px; border-radius: 50%; background: #e5e7eb; color: #6b7280; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+.coord-step.done .coord-step-num { background: #10b981; color: #fff; }
+.coord-step.current .coord-step-num { background: #f59e0b; color: #fff; }
+.coord-step-body { flex: 1; }
+.coord-step-purpose { font-size: 13px; font-weight: 600; color: #111827; }
+.coord-step-agent { font-size: 11px; color: #6b7280; font-family: monospace; }
+.cbl { display:block; font-size:12px; color:#6b7280; font-weight:600; margin:8px 0 2px; }
+/* Agent config modal — tabbed layout */
+.cfg-layout { display:flex; gap:16px; min-height:360px; }
+.cfg-nav { display:flex; flex-direction:column; gap:2px; min-width:172px; border-right:1px solid #e5e7eb; padding-right:10px; }
+.cfg-nav button { text-align:left; padding:9px 11px; border:none; background:none; border-radius:7px; cursor:pointer; font-size:13px; color:#374151; font-weight:600; display:flex; align-items:center; gap:8px; }
+.cfg-nav button:hover { background:#f3f4f6; }
+.cfg-nav button.active { background:#eef2ff; color:#1e3a8a; }
+.cfg-nav .cfg-count { margin-left:auto; font-size:11px; color:#6b7280; background:#e5e7eb; border-radius:10px; padding:0 7px; font-weight:700; }
+.cfg-nav button.active .cfg-count { background:#c7d2fe; color:#1e3a8a; }
+.cfg-panel { display:none; flex:1; min-width:0; }
+.cfg-panel.active { display:block; }
+.cfg-group { border:1px solid #e5e7eb; border-radius:8px; padding:12px; margin-bottom:12px; }
+.cfg-group > h4 { margin:0 0 4px; font-size:13px; color:#111827; }
+.cfg-group > p.hint { margin:0 0 8px; font-size:12px; color:#6b7280; }
+.cfg-pick { max-height:230px; overflow:auto; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; padding:6px; }
+.cfg-pick .checkbox-row { padding:4px 6px; border-radius:5px; }
+.cfg-pick .checkbox-row:hover { background:#eef2ff; }
+.cfg-srchdr { font-size:10px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:#9ca3af; margin:8px 4px 2px; }
+.cfg-srchdr:first-child { margin-top:2px; }
+.cfg-badge { font-size:10px; padding:1px 6px; border-radius:10px; background:#e5e7eb; color:#374151; margin-left:6px; }
+.cfg-badge.mcp { background:#ede9fe; color:#5b21b6; }
+.cfg-badge.plugin { background:#dcfce7; color:#166534; }
+.cfg-search { width:100%; margin-bottom:6px; padding:6px 8px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <span class="brand">Gov Services Admin Console</span>
+  </div>
+  <div class="pill" id="pill-mode">connecting…</div>
+</header>
+
+<nav class="tabs">
+  <button data-tab="dash" class="active">📊 Dashboard</button>
+  <button data-tab="agents">🤖 Agents</button>
+  <button data-tab="corpus">📚 Corpus</button>
+  <button data-tab="personas">💬 Personas</button>
+  <button data-tab="coord">🔄 Coordinator</button>
+  <button data-tab="broadcasts">📢 Broadcasts</button>
+  <button data-tab="voices">🎤 Voices</button>
+  <button data-tab="tools">🛠 Tools</button>
+  <button data-tab="skills">🧩 Skills</button>
+  <button data-tab="sarvam">🔬 Sarvam</button>
+</nav>
+
+<main id="content"></main>
+
+<script>
+const API = window.location.origin + '/api/v1/admin';
+const BASE = window.location.origin;
+
+let activeTab = 'dash';
+let cachedAgents = [];
+let cachedTools = [];
+let cachedVoices = [];
+
+async function fetchJson(path, opts = {}) {
+  const r = await fetch(`${API}${path}`, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', ...(opts.headers||{}) },
+  });
+  if (!r.ok) throw new Error(`${r.status}: ${await r.text()}`);
+  return r.json();
+}
+
+async function refreshHealth() {
+  try {
+    const j = await fetch(`${BASE}/api/health`).then(r => r.json());
+    const llm = j.llm ? `${j.llm.display_name}${j.llm.is_sovereign ? ' 🇮🇳':' ⚠️'}` : 'unknown';
+    document.getElementById('pill-mode').textContent =
+      `${j.agents} agents · ${j.tools} tools · LLM: ${llm}`;
+  } catch (e) {
+    document.getElementById('pill-mode').textContent = 'backend offline';
+  }
+}
+refreshHealth();
+setInterval(refreshHealth, 5000);
+
+document.querySelectorAll('nav.tabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('nav.tabs button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeTab = btn.dataset.tab;
+    render();
+  });
+});
+
+async function render() {
+  const root = document.getElementById('content');
+  root.innerHTML = '<div class="empty">Loading…</div>';
+  if (activeTab === 'dash')       await renderDashboard(root);
+  else if (activeTab === 'agents') await renderAgents(root);
+  else if (activeTab === 'corpus') await renderCorpus(root);
+  else if (activeTab === 'personas') await renderPersonas(root);
+  else if (activeTab === 'coord')  await renderCoord(root);
+  else if (activeTab === 'broadcasts') await renderBroadcasts(root);
+  else if (activeTab === 'voices') await renderVoices(root);
+  else if (activeTab === 'tools')  await renderTools(root);
+  else if (activeTab === 'skills') await renderSkills(root);
+  else if (activeTab === 'sarvam') await renderSarvam(root);
+}
+
+// ===== DASHBOARD =====
+async function renderDashboard(root) {
+  try {
+    const [metrics, health, providers] = await Promise.all([
+      fetchJson('/metrics'),
+      fetch(`${BASE}/api/health`).then(r => r.json()),
+      fetch(`${BASE}/api/v1/llm/providers`).then(r => r.json()),
+    ]);
+    let cbm = null, cbdlq = null;
+    try { cbm = await fetchJson('/callback/metrics'); } catch (_) {}
+    try { cbdlq = await fetchJson('/callback/dlq'); } catch (_) {}
+    const tile = (label, value) => `
+      <div class="metric-tile">
+        <div class="m-value">${value}</div>
+        <div class="m-label">${label}</div>
+      </div>`;
+    const chips = obj => Object.entries(obj || {}).map(([k, v]) =>
+      `<span class="cfg-badge">${escapeHtml(k)}: ${v}</span>`).join(' ') || '<span style="color:#9ca3af">none yet</span>';
+    const callbackCard = (cbm && cbm.total >= 0) ? `
+      <div class="card">
+        <div class="card-header"><h2>📞 Callback platform</h2></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:12px">
+            ${tile('completed calls', cbm.total)}
+            ${tile('avg attempts', cbm.avg_attempts)}
+            ${tile('avg turns', cbm.avg_turns)}
+            ${tile('webhook DLQ', cbdlq ? cbdlq.count : '—')}
+          </div>
+          <div style="margin-bottom:8px"><strong style="font-size:12px;color:#6b7280">OUTCOMES</strong><br>${chips(cbm.by_outcome)}</div>
+          <div><strong style="font-size:12px;color:#6b7280">STATUS</strong><br>${chips(cbm.by_status)}</div>
+          ${cbdlq && cbdlq.count ? `<button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="replayCallbackDlq()">↻ Replay ${cbdlq.count} dead-letter(s)</button>` : ''}
+        </div>
+      </div>` : '';
+    root.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;">
+        ${tile('citizens', metrics.citizens)}
+        ${tile('conversations', metrics.conversations)}
+        ${tile('messages', metrics.messages)}
+        ${tile('agents', metrics.agents)}
+        ${tile('tools', metrics.tools)}
+        ${tile('broadcasts', metrics.broadcasts)}
+        ${tile('coord sessions', metrics.coordinator_sessions)}
+        ${tile('corpus chunks', health.corpus_chunks)}
+      </div>
+      <div class="card">
+        <div class="card-header"><h2>System status</h2></div>
+        <div class="card-body">
+          <table>
+            <tr><th>Component</th><th>Mode</th></tr>
+            <tr><td>LLM</td><td><span class="tag ${health.llm.is_sovereign?'tag-active':'tag-pending'}">${health.llm.display_name} ${health.llm.is_sovereign?'🇮🇳 sovereign':'⚠️ overseas'} ${health.llm.is_mock?' (MOCK)':''}</span></td></tr>
+            <tr><td>Twilio</td><td><span class="tag ${health.twilio_mode==='live'?'tag-active':'tag-mock'}">${health.twilio_mode}</span></td></tr>
+            <tr><td>LiveKit</td><td><span class="tag ${health.livekit_mode==='live'?'tag-active':'tag-mock'}">${health.livekit_mode}</span></td></tr>
+            <tr><td>Vision OCR</td><td><span class="tag ${health.vision_mode==='live'?'tag-active':'tag-mock'}">${health.vision_mode}</span></td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2>LLM providers</h2></div>
+        <div class="card-body">
+          <table>
+            <tr><th>Provider</th><th>Model</th><th>Sovereign</th><th>Status</th><th></th></tr>
+            ${providers.available.map(p => `
+              <tr>
+                <td><strong>${p.name}</strong></td>
+                <td><code style="font-size:11px">${p.model_id||'-'}</code></td>
+                <td>${p.is_sovereign ? '🇮🇳' : '⚠️'}</td>
+                <td>${p.is_mock ? '<span class="tag tag-mock">mock</span>' : '<span class="tag tag-active">live</span>'}</td>
+                <td><button class="btn btn-sm btn-secondary" onclick="switchLLM('${p.name.replace(/'/g,"\\'")}')">activate</button></td>
+              </tr>`).join('')}
+          </table>
+        </div>
+      </div>
+      ${callbackCard}
+      <div id="latency-root"></div>`;
+    await renderLatencySection(document.getElementById('latency-root'), latencyWindow);
+  } catch (e) { root.innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+}
+
+// ===== LATENCY (Phase 6h) =====
+// Per-turn stage breakdown: where is the lag — STT, retrieval, LLM first
+// token, full LLM stream, post-processing, TTS, or end-to-end.
+let latencyWindow = 60;   // minutes
+
+function fmtMs(v) {
+  if (v == null || isNaN(v)) return '—';
+  return v >= 1000 ? (v/1000).toFixed(2) + ' s' : Math.round(v) + ' ms';
+}
+
+function latBarColor(stage) {
+  return ({stt:'#8e44ad', rag:'#2980b9', tool:'#16a085', llm_first:'#e67e22',
+           llm_total:'#d35400', post:'#7f8c8d', tts:'#c0392b', total:'#1F3864'})[stage] || '#999';
+}
+
+async function setLatencyWindow(mins) {
+  latencyWindow = mins;
+  const el = document.getElementById('latency-root');
+  if (el) await renderLatencySection(el, mins);
+}
+
+async function renderLatencySection(el, windowMin) {
+  if (!el) return;
+  el.innerHTML = '<div class="empty">Loading latency…</div>';
+  let data;
+  try { data = await fetchJson(`/metrics/latency?window=${windowMin}&recent_n=25`); }
+  catch (e) { el.innerHTML = `<div class="empty">Latency metrics error: ${e.message}</div>`; return; }
+  const s = data.summary, labels = s.stage_labels || {}, order = s.stage_order || [];
+  const ov = s.overall || {};
+  const winBtn = m => `<button class="btn btn-sm ${latencyWindow===m?'':'btn-secondary'}" onclick="setLatencyWindow(${m})">${m<60?m+'m':(m/60)+'h'}</button>`;
+  const tile = (label, value, sub) => `
+    <div class="metric-tile">
+      <div class="m-value">${value}</div>
+      <div class="m-label">${label}${sub?`<br><span style="font-size:10px;color:#999">${sub}</span>`:''}</div>
+    </div>`;
+  // stage breakdown bars scaled to the largest avg
+  const stages = order.filter(k => k !== 'total' && ov[k]);
+  const maxAvg = Math.max(1, ...stages.map(k => ov[k].avg));
+  const bars = stages.map(k => `
+    <div style="display:flex;align-items:center;gap:8px;margin:4px 0;">
+      <div style="width:130px;font-size:12px;color:#444;">${labels[k]||k}</div>
+      <div style="flex:1;background:#f0f2f5;border-radius:4px;height:16px;position:relative;">
+        <div style="width:${Math.max(2, ov[k].avg/maxAvg*100)}%;background:${latBarColor(k)};height:100%;border-radius:4px;"></div>
+      </div>
+      <div style="width:170px;font-size:11px;color:#666;">avg ${fmtMs(ov[k].avg)} · p95 ${fmtMs(ov[k].p95)} · n=${ov[k].count}</div>
+    </div>`).join('');
+  const agentRows = Object.entries(s.per_agent || {}).map(([a, info]) => {
+    const st = info.stages || {};
+    const cell = k => st[k] ? `${fmtMs(st[k].avg)} <span style="color:#aaa;font-size:10px">p95 ${fmtMs(st[k].p95)}</span>` : '—';
+    return `<tr><td><strong>${a}</strong></td><td>${info.turns}</td>
+      <td>${cell('total')}</td><td>${cell('llm_first')}</td><td>${cell('llm_total')}</td>
+      <td>${cell('rag')}</td><td>${cell('tool')}</td><td>${cell('stt')}</td><td>${cell('tts')}</td></tr>`;
+  }).join('');
+  const chanRows = Object.entries(s.per_channel || {}).map(([c, info]) => {
+    const st = info.stages || {};
+    return `<tr><td><strong>${c}</strong></td><td>${info.turns}</td>
+      <td>${st.total?fmtMs(st.total.avg):'—'}</td><td>${st.total?fmtMs(st.total.p95):'—'}</td>
+      <td>${st.llm_first?fmtMs(st.llm_first.avg):'—'}</td></tr>`;
+  }).join('');
+  const recentRows = (data.recent || []).map(e => {
+    const st = e.stages || {};
+    const t = (e.ts||'').replace('T',' ').slice(5,19);
+    return `<tr>
+      <td style="font-size:11px;color:#888">${t}</td>
+      <td>${e.agent_id}</td>
+      <td>${e.voice ? '🎙 voice' : '💬 ' + (e.channel||'')}</td>
+      <td>${e.lang||''}</td>
+      <td>${e.tool ? `<code style="font-size:10px">${e.tool}</code>` : ''}</td>
+      <td>${fmtMs(st.stt)}</td><td>${fmtMs(st.rag)}</td><td>${fmtMs(st.tool)}</td>
+      <td>${fmtMs(st.llm_first)}</td><td>${fmtMs(st.llm_total)}</td><td>${fmtMs(st.tts)}</td>
+      <td><strong>${fmtMs(st.total)}</strong>${e.fallback?' ⚠️':''}</td>
+    </tr>`;
+  }).join('');
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <h2>⏱ Response latency <span style="font-weight:400;font-size:12px;color:#888">(last ${windowMin>=60?(windowMin/60)+'h':windowMin+'m'} · ${s.turns} turns)</span></h2>
+        <div>${winBtn(15)} ${winBtn(60)} ${winBtn(360)} ${winBtn(1440)}</div>
+      </div>
+      <div class="card-body">
+        ${s.turns === 0 ? '<div class="empty">No turns recorded in this window yet — have a chat/call and refresh.</div>' : `
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;">
+          ${tile('end-to-end avg', fmtMs((ov.total||{}).avg))}
+          ${tile('end-to-end p95', fmtMs((ov.total||{}).p95))}
+          ${tile('LLM first token avg', fmtMs((ov.llm_first||{}).avg), 'perceived responsiveness')}
+          ${tile('slowest turn', fmtMs((ov.total||{}).max))}
+        </div>
+        <h3 style="font-size:13px;margin:10px 0 4px;">Where the time goes (avg per stage)</h3>
+        ${bars}
+        <h3 style="font-size:13px;margin:16px 0 4px;">Per agent</h3>
+        <table>
+          <tr><th>Agent</th><th>Turns</th><th>End-to-end</th><th>LLM 1st token</th><th>LLM total</th><th>RAG</th><th>Tool</th><th>STT</th><th>TTS</th></tr>
+          ${agentRows}
+        </table>
+        <h3 style="font-size:13px;margin:16px 0 4px;">Per channel</h3>
+        <table>
+          <tr><th>Channel</th><th>Turns</th><th>Avg total</th><th>p95 total</th><th>Avg LLM 1st token</th></tr>
+          ${chanRows}
+        </table>
+        <h3 style="font-size:13px;margin:16px 0 4px;">Recent turns</h3>
+        <div style="max-height:320px;overflow:auto;">
+        <table>
+          <tr><th>Time (UTC)</th><th>Agent</th><th>Channel</th><th>Lang</th><th>Tool</th><th>STT</th><th>RAG</th><th>Tool</th><th>LLM 1st</th><th>LLM</th><th>TTS</th><th>Total</th></tr>
+          ${recentRows}
+        </table>
+        </div>`}
+      </div>
+    </div>`;
+}
+
+async function switchLLM(provider) {
+  if (provider.startsWith('mock(')) return alert('Already a mock provider');
+  try {
+    const r = await fetch(`${BASE}/api/v1/llm/switch`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({provider}),
+    });
+    const j = await r.json();
+    alert(`Active LLM: ${j.active.display_name}`);
+    render();
+  } catch (e) { alert(e.message); }
+}
+
+// ===== AGENTS =====
+async function renderAgents(root) {
+  try {
+    const j = await fetchJson('/agents');
+    cachedAgents = j.agents;
+    root.innerHTML = `
+      <div class="card">
+        <div class="card-header">
+          <h2>Department agents (${j.agents.length})</h2>
+          <div>
+            <button class="btn btn-secondary btn-sm" onclick="resetAgents()">Reset to defaults</button>
+            <button class="btn btn-primary" onclick="agentForm()">+ New agent</button>
+          </div>
+        </div>
+        <table>
+          <tr><th></th><th>ID</th><th>Name</th><th>Voice</th><th>LLM</th><th>Tools</th><th>Status</th><th>Pinned</th><th>Actions</th></tr>
+          ${j.agents.map(a => {
+              const isEnabled = a.enabled !== false;
+              return `
+            <tr style="${isEnabled?'':'opacity:0.5'}">
+              <td><span class="em" style="background:${a.bg};padding:6px;border-radius:50%;display:inline-block;">${a.emoji}</span></td>
+              <td><code style="font-size:11px;">${a.id}</code></td>
+              <td><strong>${escapeHtml(a.name)}</strong><br><small style="color:#9ca3af">${escapeHtml(a.description.slice(0,80))}</small></td>
+              <td><code style="font-size:11px">${a.voice}</code></td>
+              <td>${a.llm_provider
+                  ? `<code style="font-size:11px;color:#1F3864;background:#eff6ff;padding:1px 5px;border-radius:4px">${a.llm_provider}</code>`
+                  : `<small style="color:#9ca3af">platform</small>`}</td>
+              <td><small style="color:#6b7280">${(a.tool_ids||[]).length} tool${(a.tool_ids||[]).length===1?'':'s'}</small></td>
+              <td>
+                <label class="agent-toggle" title="${isEnabled?'Click to take offline':'Click to bring online'}">
+                  <input type="checkbox" ${isEnabled?'checked':''} onchange="toggleAgent('${a.id}', this.checked)">
+                  <span class="agent-toggle-slider"></span>
+                  <span class="agent-toggle-label">${isEnabled?'Online':'Offline'}</span>
+                </label>
+              </td>
+              <td>${a.pinned ? '<span class="tag tag-pinned">📌</span>' : ''}</td>
+              <td>
+                <button class="btn btn-sm btn-secondary" onclick="sandboxTest('${a.id}')">test</button>
+                <button class="btn btn-sm btn-secondary" onclick="agentForm('${a.id}')">edit</button>
+                <button class="btn btn-sm btn-danger" onclick="delAgent('${a.id}')">delete</button>
+              </td>
+            </tr>`;
+          }).join('')}
+        </table>
+      </div>`;
+  } catch (e) { root.innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+}
+
+async function toggleAgent(id, enabled) {
+  // Phase 6d — quick enable/disable toggle. Backed by the
+  // POST /api/v1/admin/agents/{id}/enable endpoint which writes an
+  // audit log entry. The citizen-facing /agents list is filtered
+  // server-side so disabled agents disappear from the simulator
+  // chat list, and new messages return HTTP 503 with a maintenance
+  // message until the agent is re-enabled.
+  try {
+    const r = await fetchJson(`/agents/${id}/enable`,
+      {method:'POST', body: JSON.stringify({enabled: !!enabled})});
+    // Re-render the table so the row's opacity + toggle label update
+    render();
+  } catch (e) {
+    alert('Could not toggle: ' + e.message);
+    render();
+  }
+}
+
+async function delAgent(id) {
+  if (!confirm(`Delete agent ${id}?`)) return;
+  try { await fetchJson(`/agents/${id}`, {method:'DELETE'}); render(); }
+  catch (e) { alert(e.message); }
+}
+
+async function resetAgents() {
+  if (!confirm('Wipe data/agents.json and re-seed from in-code defaults?')) return;
+  try { await fetchJson('/agents/reset', {method:'POST'}); render(); }
+  catch (e) { alert(e.message); }
+}
+
+// ---- agent config modal helpers (tabbed layout) ----
+function cfgTab(el, name) {
+  const root = el.closest('.modal');
+  root.querySelectorAll('.cfg-nav button').forEach(b => b.classList.toggle('active', b === el));
+  root.querySelectorAll('.cfg-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+}
+function cfgFilter(input, sel) {
+  const q = input.value.toLowerCase();
+  input.closest('.cfg-group').querySelectorAll(sel).forEach(r => {
+    r.style.display = (r.dataset.search || '').includes(q) ? '' : 'none';
+  });
+}
+function cfgRecount(modal) {
+  const set = (id, n) => { const el = modal.querySelector(id); if (el) el.textContent = n; };
+  set('#cnt-skills', modal.querySelectorAll('.cfg-skill input:checked').length);
+  set('#cnt-tools', modal.querySelectorAll('.cfg-tool input:checked').length);
+  set('#cnt-rag', modal.querySelectorAll('input[id^=cc-]:checked').length);
+}
+
+async function agentForm(editId) {
+  const a = editId ? cachedAgents.find(x => x.id === editId) : null;
+  const agentId = a ? a.id : '';
+  const [tools, voices, skillsResp] = await Promise.all([
+    fetchJson('/tools'), fetchJson('/voices'),
+    fetchJson('/skills').catch(() => ({ skills: [] })),
+  ]);
+  let llmCatalog = null;
+  try { llmCatalog = await fetchJson('/llm/providers'); } catch (_) {}
+  // Show a skill in the agent's capability picker only when it is (a) ENABLED on
+  // the Skills tab AND (b) already WIRED to THIS agent. A skill turned OFF, or
+  // whose checkbox for this agent is unticked on the Skills tab, is hidden here
+  // — wiring a skill to a NEW agent is done on the Skills tab. Filtering at the
+  // source also scopes the save diff below to these skills, so the wiring of any
+  // skill not shown here is left untouched.
+  const allSkills = (skillsResp.skills || []).filter(
+    s => s.enabled !== false && (s.agents || []).includes(agentId));
+
+  // Tools grouped by source (Built-in / Plugin / MCP), searchable + consent badge
+  const groups = { builtin: [], plugin: [], mcp: [] };
+  tools.tools.forEach(t => (groups[t.source] || groups.builtin).push(t));
+  const toolRow = t => `
+    <div class="checkbox-row cfg-tool" data-search="${escapeHtml((t.id + ' ' + (t.name||'')).toLowerCase())}">
+      <input type="checkbox" id="tool-${t.id}" value="${t.id}" ${a && a.tool_ids && a.tool_ids.includes(t.id)?'checked':''} onchange="cfgRecount(this.closest('.modal-bg'))">
+      <label for="tool-${t.id}"><code style="font-size:11px">${t.id}</code> — ${escapeHtml(t.name)}${t.requires_consent?' 🔐':''}</label>
+    </div>`;
+  const toolSec = (label, arr, cls) => arr.length
+    ? `<div class="cfg-srchdr">${label}${cls==='mcp'?' 🔌':''} (${arr.length})</div>${arr.map(toolRow).join('')}` : '';
+  const toolsHtml = toolSec('Built-in', groups.builtin) + toolSec('Plugin', groups.plugin) + toolSec('MCP', groups.mcp)
+    || '<div class="empty" style="padding:8px">No tools registered.</div>';
+  const toolCount = (a && a.tool_ids ? a.tool_ids.length : 0);
+
+  // Skills picker — checked when this agent is in the skill's effective wiring
+  const skillRow = s => `
+    <div class="checkbox-row cfg-skill" data-search="${escapeHtml((s.id + ' ' + (s.name||'')).toLowerCase())}">
+      <input type="checkbox" value="${escapeHtml(s.id)}" ${(s.agents||[]).includes(agentId)?'checked':''} onchange="cfgRecount(this.closest('.modal-bg'))">
+      <label><code style="font-size:11px">${escapeHtml(s.id)}</code> — ${escapeHtml(s.name||'')}${s.is_callback?' <span class="cfg-badge mcp">callback</span>':''}</label>
+    </div>`;
+  const skillsHtml = allSkills.length ? allSkills.map(skillRow).join('')
+    : '<div class="empty" style="padding:8px">No skills defined yet — create one on the Skills tab.</div>';
+  const skillCount = allSkills.filter(s => (s.agents||[]).includes(agentId)).length;
+
+  // RAG cross-corpus — read OTHER agents' corpora
+  const others = cachedAgents.filter(x => x.id !== agentId);
+  const ccRow = o => `
+    <div class="checkbox-row" data-search="${escapeHtml((o.id+' '+o.name).toLowerCase())}">
+      <input type="checkbox" id="cc-${o.id}" value="${o.id}" ${a && (a.cross_corpus_read||[]).includes(o.id)?'checked':''} onchange="cfgRecount(this.closest('.modal-bg'))">
+      <label for="cc-${o.id}">${o.emoji||''} <code style="font-size:11px">${o.id}</code> — ${escapeHtml(o.name)}</label>
+    </div>`;
+  const ccCount = a ? (a.cross_corpus_read||[]).length : 0;
+
+  const voiceOpts = voices.voices.map(v => `<option value="${v.id}" ${a && a.voice===v.id?'selected':''}>${v.id} — ${v.tone} (${v.gender})</option>`).join('');
+  const curLLM = a && a.llm_provider ? a.llm_provider : '';
+  const llmOpts = [`<option value="" ${curLLM===''?'selected':''}>Platform default${llmCatalog?` (${llmCatalog.default.display_name})`:''}</option>`]
+    .concat((llmCatalog ? llmCatalog.providers : []).map(p => {
+      const tag = p.is_sovereign ? '🇮🇳' : '⚠️ overseas';
+      const status = p.is_mock ? ' (mock)' : '';
+      return `<option value="${p.name}" ${curLLM===p.name?'selected':''}>${tag} ${p.name} — ${p.display_name}${status}</option>`;
+    })).join('');
+
+  const modal = document.createElement('div');
+  modal.className = 'modal-bg';
+  modal.innerHTML = `
+    <div class="modal" style="max-width:880px;width:880px">
+      <div class="modal-header">
+        <h3>${a ? 'Edit agent — '+escapeHtml(a.name) : 'New agent'}</h3>
+        <button class="close-btn" onclick="this.closest('.modal-bg').remove()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="cfg-layout">
+          <div class="cfg-nav">
+            <button class="active" onclick="cfgTab(this,'identity')">🏷️ Identity</button>
+            <button onclick="cfgTab(this,'behavior')">🧠 Behavior</button>
+            <button onclick="cfgTab(this,'knowledge')">📚 Knowledge <span class="cfg-count" id="cnt-rag">${ccCount}</span></button>
+            <button onclick="cfgTab(this,'capabilities')">🧩 Capabilities</button>
+          </div>
+
+          <div class="cfg-panel active" data-panel="identity">
+            <div class="form-grid">
+              <div><label>ID (slug)</label><input id="f-id" value="${a?a.id:''}" ${a?'disabled':''} placeholder="e.g. fisheries"></div>
+              <div><label>Display name</label><input id="f-name" value="${a?escapeHtml(a.name):''}" placeholder="Fisheries Department"></div>
+            </div>
+            <div class="form-grid-3">
+              <div><label>Emoji</label><input id="f-emoji" value="${a?a.emoji:'🏢'}"></div>
+              <div><label>Header color</label><input id="f-color" type="color" value="${a?a.color:'#1F3864'}"></div>
+              <div><label>Background</label><input id="f-bg" type="color" value="${a?a.bg:'#e0f2f1'}"></div>
+            </div>
+            <label>Description (shown in chat list)</label>
+            <input id="f-desc" value="${a?escapeHtml(a.description):''}" placeholder="One-line description">
+            <div class="checkbox-row" style="margin-top:10px">
+              <input type="checkbox" id="f-pinned" ${a && a.pinned?'checked':''}>
+              <label for="f-pinned">Pin at top of chat list (like CMO)</label>
+            </div>
+            <div class="checkbox-row" style="margin-top:8px">
+              <input type="checkbox" id="f-enabled" ${(!a || a.enabled!==false)?'checked':''}>
+              <label for="f-enabled"><strong>Enabled</strong> — visible to citizens. Uncheck to take offline for maintenance.</label>
+            </div>
+          </div>
+
+          <div class="cfg-panel" data-panel="behavior">
+            <label>Department block (agent persona, expertise, escalation rules)</label>
+            <textarea id="f-dept" rows="8" placeholder="Detailed instructions — topics it handles, what to say, when to escalate.">${a?escapeHtml(a.department_block):''}</textarea>
+            <label style="margin-top:10px">Bulbul voice</label>
+            <select id="f-voice">${voiceOpts}</select>
+            <label style="margin-top:12px">LLM provider override</label>
+            <select id="f-llm">${llmOpts}</select>
+            <small style="color:#6b7280;display:block;margin-top:4px">Default uses the platform LLM. 🇮🇳 = sovereign, ⚠️ = overseas (PII risk — use only with consent).</small>
+          </div>
+
+          <div class="cfg-panel" data-panel="knowledge">
+            <div class="cfg-group">
+              <h4>📚 Primary corpus (RAG)</h4>
+              <p class="hint">The agent retrieves from this corpus each turn. Leave blank to default to the agent id <code>${escapeHtml(agentId||'(new id)')}</code>. Manage chunks on the Corpus tab.</p>
+              <input id="f-corpus" value="${a?escapeHtml(a.corpus_id||''):''}" placeholder="${escapeHtml(agentId||'corpus id')}" style="width:100%">
+            </div>
+            <div class="cfg-group">
+              <h4>🔗 Cross-corpus reads</h4>
+              <p class="hint">Also let this agent read these other agents' corpora (e.g. CMO reading Revenue + Health).</p>
+              <input class="cfg-search" placeholder="🔎 filter agents…" oninput="cfgFilter(this,'.checkbox-row')">
+              <div class="cfg-pick">${others.map(ccRow).join('') || '<div class="empty" style="padding:8px">No other agents.</div>'}</div>
+            </div>
+          </div>
+
+          <div class="cfg-panel" data-panel="capabilities">
+            <div class="cfg-group">
+              <h4>🧩 Skills <span class="cfg-badge" id="cnt-skills">${skillCount}</span></h4>
+              <p class="hint">A skill bundles tools + instructions (+ optional RAG). Saving here updates each skill's agent wiring.</p>
+              <input class="cfg-search" placeholder="🔎 filter skills…" oninput="cfgFilter(this,'.cfg-skill')">
+              <div class="cfg-pick">${skillsHtml}</div>
+            </div>
+            <div class="cfg-group">
+              <h4>🛠️ Tools &amp; MCP <span class="cfg-badge" id="cnt-tools">${toolCount}</span></h4>
+              <p class="hint">Individual actions the agent may call. 🔐 needs consent · 🔌 MCP (external server).</p>
+              <input class="cfg-search" placeholder="🔎 filter tools…" oninput="cfgFilter(this,'.cfg-tool')">
+              <div class="cfg-pick">${toolsHtml}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="this.closest('.modal-bg').remove()">Cancel</button>
+        <button class="btn btn-primary" id="f-save">${a ? 'Save changes' : 'Create agent'}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  modal.querySelector('#f-save').addEventListener('click', async () => {
+    const body = {
+      id: modal.querySelector('#f-id').value.trim().toLowerCase(),
+      name: modal.querySelector('#f-name').value.trim(),
+      emoji: modal.querySelector('#f-emoji').value.trim() || '🏢',
+      color: modal.querySelector('#f-color').value,
+      bg: modal.querySelector('#f-bg').value,
+      description: modal.querySelector('#f-desc').value.trim(),
+      department_block: modal.querySelector('#f-dept').value.trim(),
+      voice: modal.querySelector('#f-voice').value,
+      llm_provider: modal.querySelector('#f-llm').value || null,
+      pinned: modal.querySelector('#f-pinned').checked,
+      enabled: modal.querySelector('#f-enabled').checked,
+      corpus_id: modal.querySelector('#f-corpus').value.trim() || null,
+      cross_corpus_read: [...modal.querySelectorAll('input[id^=cc-]:checked')].map(c => c.value),
+      tool_ids: [...modal.querySelectorAll('.cfg-tool input:checked')].map(c => c.value),
+    };
+    if (!body.id || !body.name) return alert('id and name required');
+    const saveId = body.id;
+    const btn = modal.querySelector('#f-save');
+    btn.disabled = true;
+    try {
+      if (a) {
+        const { id, ...patch } = body;
+        await fetchJson(`/agents/${a.id}`, { method: 'PATCH', body: JSON.stringify(patch) });
+      } else {
+        await fetchJson('/agents', { method: 'POST', body: JSON.stringify(body) });
+      }
+      // Apply skill wiring as a diff against each skill's current agent list.
+      const desired = new Set([...modal.querySelectorAll('.cfg-skill input:checked')].map(c => c.value));
+      for (const s of allSkills) {
+        const has = (s.agents || []).includes(saveId);
+        const want = desired.has(s.id);
+        if (has === want) continue;
+        const agents = new Set(s.agents || []);
+        if (want) agents.add(saveId); else agents.delete(saveId);
+        await fetchJson(`/skills/${encodeURIComponent(s.id)}/binding`, {
+          method: 'PUT', body: JSON.stringify({ enabled: s.enabled !== false, agents: [...agents] }),
+        });
+      }
+      modal.remove();
+      toast(`Saved agent ${saveId}`);
+      render();
+    } catch (e) { btn.disabled = false; alert(e.message); }
+  });
+}
+
+async function sandboxTest(agentId) {
+  const text = prompt(`Sandbox message for ${agentId}:`, 'Hello, can you help me?');
+  if (!text) return;
+  try {
+    const r = await fetchJson(`/agents/${agentId}/sandbox`, {
+      method:'POST', body: JSON.stringify({text})
+    });
+    alert(`Agent reply (RAG chunks: ${r.rag_chunks}):\n\n${r.reply}`);
+  } catch (e) { alert(e.message); }
+}
+
+// ===== COORDINATOR =====
+async function renderCoord(root) {
+  try {
+    const [recipes, sessions] = await Promise.all([
+      fetchJson('/coordinator/recipes'),
+      fetchJson('/coordinator/sessions'),
+    ]);
+    root.innerHTML = `
+      <div class="card">
+        <div class="card-header"><h2>Cross-agent recipes (${recipes.recipes.length})</h2></div>
+        <div class="card-body">
+          ${recipes.recipes.map(r => `
+            <div style="margin-bottom:14px;">
+              <strong>${escapeHtml(r.title)}</strong>
+              <code style="font-size:11px;margin-left:8px;color:#9ca3af;">${r.id}</code>
+              <div style="font-size:13px;color:#6b7280;margin:4px 0 8px;">${escapeHtml(r.description)}</div>
+              <div style="font-size:12px;color:#374151;"><strong>Agents in sequence:</strong> ${r.agentIds.join(' → ')}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2>Active sessions (${sessions.sessions.length})</h2></div>
+        ${sessions.sessions.length === 0 ? `<div class="empty">No active sessions. Try sending "my farm was flooded" from the simulator.</div>` :
+          `<table>
+            <tr><th>Session</th><th>Citizen</th><th>Recipe</th><th>Progress</th><th>Status</th><th>Started</th></tr>
+            ${sessions.sessions.map(s => `
+              <tr>
+                <td><code style="font-size:11px">${s.sessionId}</code></td>
+                <td><code style="font-size:11px">${s.citizenId}</code></td>
+                <td>${s.recipeId}</td>
+                <td>step ${s.currentIdx + 1} · state ${s.state}</td>
+                <td>${s.completed ? '<span class="tag tag-active">done</span>' : '<span class="tag tag-pending">running</span>'}</td>
+                <td><small>${new Date(s.started_at).toLocaleTimeString('en-IN')}</small></td>
+              </tr>`).join('')}
+          </table>`
+        }
+      </div>`;
+  } catch (e) { root.innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+}
+
+// ===== BROADCASTS =====
+async function renderBroadcasts(root) {
+  try {
+    const b = await fetchJson('/broadcasts');
+    const agents = cachedAgents.length ? cachedAgents : (await fetchJson('/agents')).agents;
+    root.innerHTML = `
+      <div class="card">
+        <div class="card-header">
+          <h2>Broadcasts (${b.broadcasts.length})</h2>
+          <button class="btn btn-primary" onclick="broadcastForm()">+ Compose</button>
+        </div>
+        ${b.broadcasts.length === 0 ? `<div class="empty">No broadcasts yet.</div>` :
+          `<table>
+            <tr><th>Title</th><th>Agent</th><th>Languages</th><th>Status</th><th>Composed by</th><th>Sent</th><th>Actions</th></tr>
+            ${b.broadcasts.map(bc => `
+              <tr>
+                <td><strong>${escapeHtml(bc.title)}</strong></td>
+                <td><code style="font-size:11px">${bc.agent_id}</code></td>
+                <td>${(bc.languages||['en-IN']).join(', ')}</td>
+                <td><span class="tag tag-${bc.status==='pending_approval'?'pending':bc.status}">${bc.status}</span></td>
+                <td>${bc.composed_by}</td>
+                <td>${bc.sent_count || '—'}</td>
+                <td>
+                  ${bc.status === 'pending_approval' ?
+                    `<button class="btn btn-sm btn-success" onclick="approveBroadcast('${bc.broadcast_id}')">approve</button>
+                     <button class="btn btn-sm btn-danger"  onclick="rejectBroadcast('${bc.broadcast_id}')">reject</button>` :
+                   bc.status === 'approved' ?
+                    `<button class="btn btn-sm btn-warning" onclick="sendBroadcast('${bc.broadcast_id}')">send 📢</button>` :
+                    ''}
+                </td>
+              </tr>`).join('')}
+          </table>`}
+      </div>`;
+  } catch (e) { root.innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+}
+
+async function broadcastForm() {
+  const agents = cachedAgents.length ? cachedAgents : (await fetchJson('/agents')).agents;
+  const langs = ['en-IN','ta-IN','hi-IN','te-IN','kn-IN','ml-IN','bn-IN','mr-IN','gu-IN','pa-IN','od-IN'];
+  const modal = document.createElement('div');
+  modal.className = 'modal-bg';
+  modal.innerHTML = `
+    <div class="modal">
+      <div class="modal-header"><h3>Compose broadcast</h3><button class="close-btn" onclick="this.closest('.modal-bg').remove()">×</button></div>
+      <div class="modal-body">
+        <label>From agent</label>
+        <select id="b-agent">${agents.map(a => `<option value="${a.id}">${a.emoji} ${escapeHtml(a.name)}</option>`).join('')}</select>
+        <label>Title</label>
+        <input id="b-title" placeholder="e.g., Free vaccination camp this Saturday">
+        <label>Body (English — auto-translates below if checked)</label>
+        <textarea id="b-body" rows="3" placeholder="Body text — keep it under 200 chars for WhatsApp."></textarea>
+        <div class="checkbox-row">
+          <input type="checkbox" id="b-translate" checked>
+          <label for="b-translate">Auto-translate via Sarvam-Translate (or LLM fallback)</label>
+        </div>
+        <label>Languages</label>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+          ${langs.map(l => `<div class="checkbox-row"><input type="checkbox" id="lang-${l}" value="${l}" ${l==='en-IN'?'checked':''}><label for="lang-${l}">${l}</label></div>`).join('')}
+        </div>
+        <label>Composed by</label>
+        <input id="b-by" value="officer-${Math.floor(Math.random()*99)+1}">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="this.closest('.modal-bg').remove()">Cancel</button>
+        <button class="btn btn-primary" id="b-save">Submit for approval</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.querySelector('#b-save').addEventListener('click', async () => {
+    const langs = [...modal.querySelectorAll('input[id^=lang-]:checked')].map(c=>c.value);
+    const body = {
+      agentId: modal.querySelector('#b-agent').value,
+      title: modal.querySelector('#b-title').value.trim(),
+      body: modal.querySelector('#b-body').value.trim(),
+      targetAudience: {type:'all'},
+      languages: langs,
+      composedBy: modal.querySelector('#b-by').value.trim() || 'officer-1',
+      autoTranslate: modal.querySelector('#b-translate').checked,
+    };
+    if (!body.title || !body.body) return alert('title and body required');
+    try {
+      await fetchJson('/broadcasts', {method:'POST', body: JSON.stringify(body)});
+      modal.remove();
+      render();
+    } catch (e) { alert(e.message); }
+  });
+}
+
+async function approveBroadcast(id) {
+  const by = prompt('Approver (must differ from composer for four-eyes):', `officer-${Math.floor(Math.random()*99)}`);
+  if (!by) return;
+  try { await fetchJson(`/broadcasts/${id}/approve`, {method:'POST', body: JSON.stringify({by})}); render(); }
+  catch (e) { alert(e.message); }
+}
+async function rejectBroadcast(id) {
+  const by = prompt('Rejected by:', `officer-${Math.floor(Math.random()*99)}`);
+  if (!by) return;
+  try { await fetchJson(`/broadcasts/${id}/reject`, {method:'POST', body: JSON.stringify({by})}); render(); }
+  catch (e) { alert(e.message); }
+}
+async function sendBroadcast(id) {
+  if (!confirm('Fan out to all connected citizens?')) return;
+  try {
+    const r = await fetchJson(`/broadcasts/${id}/send`, {method:'POST'});
+    alert(`Sent to ${r.sent_count} citizens.`);
+    render();
+  } catch (e) { alert(e.message); }
+}
+
+// ===== VOICES =====
+async function renderVoices(root) {
+  try {
+    const j = await fetchJson('/voices');
+    cachedVoices = j.voices;
+    root.innerHTML = `
+      <div class="card">
+        <div class="card-header">
+          <h2>Bulbul v3 voice catalog</h2>
+          <select id="v-lang" style="width:auto">
+            ${j.supported_languages.map(l => `<option value="${l}" ${l==='en-IN'?'selected':''}>${l}</option>`).join('')}
+          </select>
+        </div>
+        <div class="card-body">
+          <p style="font-size:13px;color:#6b7280;margin-bottom:14px;">
+            Audition Bulbul voices. Each agent has a default voice — Revenue uses arjun, Health uses vidya, etc. Use this to pick a voice when creating a new agent.
+          </p>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+            ${j.voices.map(v => `
+              <div class="voice-card" id="vc-${v.id}">
+                <div class="v-name">${v.id}</div>
+                <div class="v-meta">${v.gender} · ${v.tone}</div>
+                <button class="btn btn-sm btn-secondary v-play" onclick="previewVoice('${v.id}')">▶ Preview</button>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>`;
+  } catch (e) { root.innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+}
+
+async function previewVoice(voiceId) {
+  const lang = document.getElementById('v-lang').value;
+  const samples = {
+    'en-IN': 'Hello, this is how I would sound during a government services call.',
+    'ta-IN': 'வணக்கம், அரசு சேவை அழைப்பின் போது நான் இப்படித்தான் ஒலிக்கிறேன்.',
+    'hi-IN': 'नमस्ते, सरकारी सेवा कॉल के दौरान मेरी आवाज़ ऐसी ही होगी।',
+  };
+  const text = samples[lang] || samples['en-IN'];
+  // Visually mark which voice card is active
+  document.querySelectorAll('.voice-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('vc-' + voiceId)?.classList.add('active');
+  try {
+    const r = await fetchJson('/voices/preview', {
+      method:'POST',
+      body: JSON.stringify({voice: voiceId, language: lang, text}),
+    });
+    // Show a banner above the voice grid so user KNOWS whether what they
+    // just heard was real Bulbul or the mock chime.
+    const banner = document.createElement('div');
+    document.querySelectorAll('.preview-banner').forEach(b => b.remove());
+    banner.className = 'preview-banner';
+    // Three modes: LIVE_BULBUL (green), FALLBACK_AFTER_ERROR (red), MOCK_CHIME (yellow)
+    let bg = '#dcfce7', bd = '#4ade80', col = '#166534';
+    if (r.mode === 'FALLBACK_AFTER_ERROR') { bg='#fee2e2'; bd='#fca5a5'; col='#991b1b'; }
+    else if (r.mode === 'MOCK_CHIME')      { bg='#fef3c7'; bd='#fbbf24'; col='#78350f'; }
+    banner.style.cssText = `padding:10px 14px;border-radius:8px;margin:10px 0;font-size:13px;`
+      + `background:${bg};border:1px solid ${bd};color:${col};white-space:pre-wrap;`;
+    let body;
+    if (r.mode === 'LIVE_BULBUL') {
+      body = `🎤 <strong>Real Bulbul v3:</strong> ${escapeHtml(r.hint)}`;
+    } else if (r.mode === 'FALLBACK_AFTER_ERROR') {
+      body = `⚠️ <strong>Sarvam rejected voice '${escapeHtml(r.voice)}':</strong>\n${escapeHtml(r.hint)}`;
+    } else {
+      body = `🔔 <strong>You just heard a MOCK chime, not Bulbul.</strong> ${escapeHtml(r.hint)} `
+           + `<a href="#" onclick="document.querySelector('[data-tab=sarvam]').click();return false;">Open Sarvam diagnostics →</a>`;
+    }
+    banner.innerHTML = body;
+    const cardBody = document.querySelector('.card-body');
+    if (cardBody) cardBody.insertBefore(banner, cardBody.firstChild);
+    const audio = new Audio(BASE + r.audio_url);
+    audio.play();
+  } catch (e) { alert(e.message); }
+}
+
+// ===== TOOLS =====
+// ===== PHASE 6c — CORPUS MANAGEMENT =====
+let _corpusAgent = null;
+async function renderCorpus(root) {
+  try {
+    const agents = (cachedAgents && cachedAgents.length) ? cachedAgents : (await fetchJson('/agents')).agents;
+    cachedAgents = agents;
+    const stats = await fetchJson('/corpus/stats');
+    if (!_corpusAgent && agents.length) _corpusAgent = agents[0].id;
+    const ag = agents.find(a => a.id === _corpusAgent) || agents[0];
+    const listing = await fetchJson(`/corpus/${ag.id}?limit=500`);
+    root.innerHTML = `
+      <div class="card">
+        <div class="card-header">
+          <h2>📚 RAG corpus management</h2>
+          <div>
+            <button class="btn btn-secondary btn-sm" onclick="corpusReseed()" title="Wipe + reseed from seed_corpora.jsonl">Reseed (demo)</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <p style="color:#6b7280;font-size:13px;margin:0 0 12px">
+            Each agent has its own corpus of knowledge chunks. The agent retrieves the top 4 most relevant chunks on every turn and cites them in its reply. Upload .txt / .md / .json / .jsonl files to extend an agent's knowledge.
+          </p>
+          <div style="display:flex; gap:18px; align-items:flex-start; margin-bottom:14px">
+            <div>
+              <label style="display:block;font-size:12px;color:#6b7280;font-weight:600;margin-bottom:4px">Agent</label>
+              <select id="corp-agent" onchange="corpusSelectAgent(this.value)">
+                ${agents.map(a => `<option value="${a.id}" ${a.id===ag.id?'selected':''}>${a.emoji} ${escapeHtml(a.name)} — ${(stats.stats||{})[a.id]||0} chunks</option>`).join('')}
+              </select>
+            </div>
+            <div style="flex:1">
+              <label style="display:block;font-size:12px;color:#6b7280;font-weight:600;margin-bottom:4px">Quick test retrieval</label>
+              <div style="display:flex;gap:6px">
+                <input id="corp-q" type="text" placeholder="Try: PM-KISAN, ration card portability, dl renewal…" style="flex:1">
+                <button class="btn btn-primary btn-sm" onclick="corpusTest('${ag.id}')">Test</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="corp-test-out" style="margin-bottom:12px"></div>
+
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="corpusUploadDialog('${ag.id}')">📤 Upload file</button>
+            <button class="btn btn-secondary btn-sm" onclick="corpusAddChunkDialog('${ag.id}')">+ New chunk</button>
+            <input id="corp-search" type="text" placeholder="Filter chunks…" style="flex:1;min-width:200px" oninput="corpusFilter()">
+            <span style="font-size:12px;color:#6b7280">${listing.total} chunks total</span>
+          </div>
+
+          <div id="corp-list" style="max-height:520px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:8px">
+            ${listing.chunks.map(c => _corpRowHtml(c)).join('')}
+          </div>
+        </div>
+      </div>`;
+  } catch (e) { root.innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+}
+
+function _corpRowHtml(c) {
+  const meta = c.metadata || {};
+  const verified = c.last_verified ? `<span style="font-size:11px;color:#6b7280">✓ ${c.last_verified}</span>` : '';
+  return `<div class="corp-row" data-title="${escapeHtml((c.title||'').toLowerCase())}" data-body="${escapeHtml((c.body||'').toLowerCase().slice(0,400))}" style="padding:12px 14px;border-bottom:1px solid #f3f4f6">
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+      <div style="flex:1">
+        <div style="font-weight:700;color:#1F3864">${escapeHtml(c.title||'untitled')}</div>
+        <div style="font-size:12px;color:#374151;margin-top:4px;line-height:1.5;white-space:pre-wrap">${escapeHtml((c.body_preview||c.body||'').slice(0,300))}</div>
+        <div style="font-size:11px;color:#6b7280;margin-top:6px">
+          <code>${escapeHtml(c.chunk_id||'')}</code>
+          ${c.source ? ` · 📜 ${escapeHtml(c.source)}` : ''}
+          ${verified ? ' · ' + verified : ''}
+          ${meta.scheme_id ? ` · <code style="background:#eff6ff;padding:1px 5px;border-radius:3px;color:#1F3864">${escapeHtml(meta.scheme_id)}</code>` : ''}
+          ${meta.helpline ? ` · ☎ ${escapeHtml(meta.helpline)}` : ''}
+          ${(c.tags||[]).map(t => `<code style="background:#f3f4f6;padding:1px 5px;border-radius:3px;margin-left:4px">${escapeHtml(t)}</code>`).join('')}
+        </div>
+      </div>
+      <button class="btn btn-sm btn-danger" onclick="corpusDelete('${c.chunk_id}')">Delete</button>
+    </div>
+  </div>`;
+}
+
+function corpusSelectAgent(aid) { _corpusAgent = aid; render(); }
+
+function corpusFilter() {
+  const q = (document.getElementById('corp-search').value||'').toLowerCase();
+  document.querySelectorAll('.corp-row').forEach(el => {
+    const hay = (el.dataset.title || '') + ' ' + (el.dataset.body || '');
+    el.style.display = hay.includes(q) ? '' : 'none';
+  });
+}
+
+async function corpusDelete(chunkId) {
+  if (!confirm(`Delete chunk ${chunkId}?`)) return;
+  try { await fetchJson(`/corpus/chunks/${chunkId}`, {method:'DELETE'}); render(); }
+  catch (e) { alert(e.message); }
+}
+
+async function corpusTest(aid) {
+  const q = (document.getElementById('corp-q').value || '').trim();
+  if (!q) return;
+  const out = document.getElementById('corp-test-out');
+  out.innerHTML = '<div style="color:#6b7280;font-size:12px">⏳ Searching…</div>';
+  try {
+    const r = await fetchJson('/corpus/test', {method:'POST',
+      body: JSON.stringify({agent_id: aid, query: q, k: 5, include_cross: true})});
+    if (!r.hits.length) {
+      out.innerHTML = `<div style="background:#fef3c7;border:1px solid #fde68a;border-radius:6px;padding:10px;font-size:13px;color:#92400e">No hits — the agent has no retrieval coverage for this query. Hallucination guard will trigger.</div>`;
+      return;
+    }
+    out.innerHTML = `<div style="background:#eff6ff;border:1px solid #93c5fd;border-radius:6px;padding:10px">
+      <div style="font-size:12px;color:#1e3a8a;margin-bottom:8px">
+        Cross-corpus reads: ${r.cross_corpus_read.join(', ') || '(none)'} · Top score: ${(r.hits[0].score).toFixed(2)} ${r.hits[0].score < 0.5 ? '⚠️ LOW' : ''}
+      </div>
+      ${r.hits.map((h,i) => `<div style="padding:6px 0;border-top:1px solid #dbeafe">
+        <div><strong>#${i+1}</strong> <code style="font-size:11px">${escapeHtml(h.chunk.chunk_id)}</code> from <strong>${escapeHtml(h.from_agent)}</strong> · score ${h.score.toFixed(3)}</div>
+        <div style="font-size:13px;color:#1F3864;font-weight:600;margin-top:3px">${escapeHtml(h.chunk.title)}</div>
+        <div style="font-size:12px;color:#374151;margin-top:3px">${escapeHtml((h.chunk.body||'').slice(0,200))}…</div>
+      </div>`).join('')}
+    </div>`;
+  } catch (e) { out.innerHTML = `<div style="color:#991b1b">${e.message}</div>`; }
+}
+
+async function corpusUploadDialog(aid) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-bg';
+  modal.innerHTML = `
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Upload to corpus: ${aid}</h3>
+        <button class="close-btn" onclick="this.closest('.modal-bg').remove()">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size:13px;color:#374151;margin-bottom:14px;line-height:1.5">
+          Supported file types:
+          <ul style="margin:8px 0 0 18px">
+            <li><strong>.txt / .md</strong> — auto-chunked at headings (#, ##, ###) or paragraphs</li>
+            <li><strong>.jsonl</strong> — one chunk per line (recommended for structured data)</li>
+            <li><strong>.json</strong> — single object or array of chunk objects</li>
+          </ul>
+        </div>
+        <label>File</label>
+        <input id="up-file" type="file" accept=".txt,.md,.json,.jsonl">
+        <div class="form-grid">
+          <div><label>Source (citation)</label><input id="up-source" placeholder="e.g. G.O. Ms. 78 of 12 Mar 2026"></div>
+          <div><label>Source URL</label><input id="up-url" placeholder="https://…"></div>
+        </div>
+        <div class="form-grid">
+          <div><label>Last verified date</label><input id="up-verified" type="date"></div>
+          <div><label>Language</label>
+            <select id="up-lang">
+              <option value="en-IN">en-IN</option><option value="hi-IN">hi-IN</option>
+              <option value="ta-IN">ta-IN</option><option value="te-IN">te-IN</option>
+              <option value="kn-IN">kn-IN</option><option value="ml-IN">ml-IN</option>
+            </select>
+          </div>
+        </div>
+        <div id="up-status" style="margin-top:14px"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="this.closest('.modal-bg').remove()">Cancel</button>
+        <button class="btn btn-primary" id="up-submit">Upload</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.querySelector('#up-submit').addEventListener('click', async () => {
+    const fileInput = modal.querySelector('#up-file');
+    if (!fileInput.files[0]) return alert('Select a file first');
+    const fd = new FormData();
+    fd.append('file', fileInput.files[0]);
+    fd.append('source', modal.querySelector('#up-source').value);
+    fd.append('source_url', modal.querySelector('#up-url').value);
+    fd.append('last_verified', modal.querySelector('#up-verified').value);
+    fd.append('language', modal.querySelector('#up-lang').value);
+    fd.append('uploaded_by', 'admin');
+    const status = modal.querySelector('#up-status');
+    status.innerHTML = '⏳ Uploading…';
+    try {
+      const r = await fetch(`${BASE}/api/v1/admin/corpus/${aid}/upload`, {method:'POST', body: fd});
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.detail || ('HTTP ' + r.status));
+      status.innerHTML = `<div style="background:#dcfce7;border:1px solid #86efac;padding:10px;border-radius:6px;font-size:12px;color:#166534">
+        ✅ Ingested ${j.ingested} chunks (mode: ${j.mode}).<br>
+        First titles: ${(j.preview||[]).slice(0,3).map(p => escapeHtml(p.title)).join(', ') || '—'}
+      </div>`;
+      setTimeout(() => { modal.remove(); render(); }, 1200);
+    } catch (e) { status.innerHTML = `<div style="color:#991b1b">${escapeHtml(e.message)}</div>`; }
+  });
+}
+
+async function corpusAddChunkDialog(aid) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-bg';
+  modal.innerHTML = `
+    <div class="modal">
+      <div class="modal-header">
+        <h3>New chunk for ${aid}</h3>
+        <button class="close-btn" onclick="this.closest('.modal-bg').remove()">×</button>
+      </div>
+      <div class="modal-body">
+        <label>Title</label><input id="nc-title">
+        <label>Body (the actual content the agent quotes)</label>
+        <textarea id="nc-body" rows="6"></textarea>
+        <div class="form-grid">
+          <div><label>Source (citation)</label><input id="nc-source"></div>
+          <div><label>Source URL</label><input id="nc-url"></div>
+        </div>
+        <div class="form-grid">
+          <div><label>Last verified</label><input id="nc-verified" type="date"></div>
+          <div><label>Tags (comma-sep)</label><input id="nc-tags" placeholder="welfare, women"></div>
+        </div>
+        <label>Metadata (JSON, optional)</label>
+        <textarea id="nc-meta" rows="3" placeholder='{"scheme_id":"…","amount":"…","helpline":"…"}'></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="this.closest('.modal-bg').remove()">Cancel</button>
+        <button class="btn btn-primary" id="nc-save">Create</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.querySelector('#nc-save').addEventListener('click', async () => {
+    let meta = {};
+    const metaStr = modal.querySelector('#nc-meta').value.trim();
+    if (metaStr) { try { meta = JSON.parse(metaStr); } catch (e) { return alert('Invalid metadata JSON: '+e.message); } }
+    const body = {
+      title: modal.querySelector('#nc-title').value.trim(),
+      body: modal.querySelector('#nc-body').value.trim(),
+      source: modal.querySelector('#nc-source').value.trim(),
+      source_url: modal.querySelector('#nc-url').value.trim(),
+      last_verified: modal.querySelector('#nc-verified').value,
+      tags: modal.querySelector('#nc-tags').value.split(',').map(s=>s.trim()).filter(Boolean),
+      metadata: meta,
+    };
+    if (!body.body) return alert('Body required');
+    try { await fetchJson(`/corpus/${aid}/chunks`, {method:'POST', body: JSON.stringify(body)});
+          modal.remove(); render(); }
+    catch (e) { alert(e.message); }
+  });
+}
+
+async function corpusReseed() {
+  if (!confirm('Wipe EVERY agent\'s corpus and re-import seed_corpora.jsonl?')) return;
+  try { const r = await fetchJson('/corpus/reseed', {method:'POST'});
+        alert(`Reseeded ${r.ingested} chunks total.`); render(); }
+  catch (e) { alert(e.message); }
+}
+
+// ===== PHASE 6c — PERSONAS (few-shot examples) =====
+let _personaAgent = null;
+async function renderPersonas(root) {
+  try {
+    const agents = (cachedAgents && cachedAgents.length) ? cachedAgents : (await fetchJson('/agents')).agents;
+    cachedAgents = agents;
+    if (!_personaAgent && agents.length) _personaAgent = agents[0].id;
+    const ag = agents.find(a => a.id === _personaAgent) || agents[0];
+    const j = await fetchJson(`/personas/${ag.id}/examples`);
+
+    root.innerHTML = `
+      <div class="card">
+        <div class="card-header">
+          <h2>💬 Persona — few-shot examples</h2>
+        </div>
+        <div class="card-body">
+          <p style="color:#6b7280;font-size:13px;margin:0 0 12px">
+            Each citizen turn, the orchestrator picks the 3 most similar examples below and shows them to the LLM as "this is how YOU reply". Use this to lock in the agent's voice, register, and code-mix.
+          </p>
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px">
+            <label style="font-size:12px;color:#6b7280;font-weight:600">Agent</label>
+            <select onchange="personaSelectAgent(this.value)">
+              ${agents.map(a => `<option value="${a.id}" ${a.id===ag.id?'selected':''}>${a.emoji} ${escapeHtml(a.name)} — persona: ${escapeHtml(a.persona_name||'(none)')}</option>`).join('')}
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="personaAddDialog('${ag.id}')">+ New example</button>
+          </div>
+
+          <div style="background:#f9fafb;border-radius:8px;padding:12px;margin-bottom:14px;border:1px solid #e5e7eb">
+            <div style="font-size:11px;color:#6b7280;font-weight:600">Persona settings (edit on Agents tab)</div>
+            <div style="font-size:13px;color:#1F3864;margin-top:4px;font-weight:600">${escapeHtml(ag.persona_name||'(no persona set)')}</div>
+            <div style="font-size:12px;color:#374151;margin-top:4px">Tone: <code>${escapeHtml(ag.tone||'-')}</code></div>
+            <div style="font-size:12px;color:#374151;margin-top:4px">Opener: "${escapeHtml(ag.signature_opener||'(default)')}"</div>
+            <div style="font-size:12px;color:#374151;margin-top:4px">Closer: "${escapeHtml(ag.signature_closer||'(default)')}"</div>
+            <div style="font-size:12px;color:#374151;margin-top:4px">Traits: ${(ag.conversational_traits||[]).length ? '<ul style="margin:4px 0 0 18px;font-size:12px">'+(ag.conversational_traits||[]).map(t => '<li>'+escapeHtml(t)+'</li>').join('')+'</ul>' : '(none)'}</div>
+          </div>
+
+          <div style="max-height:520px;overflow-y:auto">
+            ${j.examples.map((e,i) => `
+              <div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin-bottom:10px">
+                <div style="display:flex;justify-content:space-between;gap:10px">
+                  <div style="flex:1">
+                    <div style="font-size:11px;color:#6b7280;font-weight:600;margin-bottom:3px">CITIZEN (${escapeHtml(e.language||'en-IN')}):</div>
+                    <div style="font-size:13px;color:#374151;background:#f3f4f6;padding:8px 10px;border-radius:6px">${escapeHtml(e.user||'')}</div>
+                    <div style="font-size:11px;color:#6b7280;font-weight:600;margin:8px 0 3px">YOU (${escapeHtml(ag.persona_name||'')}):</div>
+                    <div style="font-size:13px;color:#0F4C75;background:#eff6ff;padding:8px 10px;border-radius:6px">${escapeHtml(e.agent||'')}</div>
+                    ${e.tags && e.tags.length ? '<div style="margin-top:6px">'+e.tags.map(t => '<code style="background:#f3f4f6;padding:1px 5px;border-radius:3px;font-size:10px;margin-right:4px">'+escapeHtml(t)+'</code>').join('')+'</div>' : ''}
+                  </div>
+                  <button class="btn btn-sm btn-danger" onclick="personaDelete('${ag.id}', ${i})">Delete</button>
+                </div>
+              </div>
+            `).join('') || '<div class="empty">No few-shot examples yet for this agent. Click + New example to add one.</div>'}
+          </div>
+        </div>
+      </div>`;
+  } catch (e) { root.innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+}
+
+function personaSelectAgent(aid) { _personaAgent = aid; render(); }
+
+async function personaDelete(aid, idx) {
+  if (!confirm('Delete this example?')) return;
+  try { await fetchJson(`/personas/${aid}/examples/${idx}`, {method:'DELETE'}); render(); }
+  catch (e) { alert(e.message); }
+}
+
+async function personaAddDialog(aid) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-bg';
+  modal.innerHTML = `
+    <div class="modal">
+      <div class="modal-header"><h3>Add few-shot example: ${aid}</h3>
+        <button class="close-btn" onclick="this.closest('.modal-bg').remove()">×</button></div>
+      <div class="modal-body">
+        <label>Citizen message</label>
+        <textarea id="pe-user" rows="2" placeholder="What a citizen might type or say"></textarea>
+        <label>Agent reply (in the persona voice)</label>
+        <textarea id="pe-agent" rows="5" placeholder="How this agent should respond — include opener phrases, citations, follow-up offers"></textarea>
+        <div class="form-grid">
+          <div><label>Language</label>
+            <select id="pe-lang">
+              <option value="en-IN">en-IN</option><option value="hi-IN">hi-IN</option>
+              <option value="ta-IN">ta-IN</option><option value="te-IN">te-IN</option>
+              <option value="kn-IN">kn-IN</option><option value="ml-IN">ml-IN</option>
+            </select>
+          </div>
+          <div><label>Tags (comma-sep)</label><input id="pe-tags" placeholder="grievance, women"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="this.closest('.modal-bg').remove()">Cancel</button>
+        <button class="btn btn-primary" id="pe-save">Add</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.querySelector('#pe-save').addEventListener('click', async () => {
+    const body = {
+      user: modal.querySelector('#pe-user').value.trim(),
+      agent: modal.querySelector('#pe-agent').value.trim(),
+      language: modal.querySelector('#pe-lang').value,
+      tags: modal.querySelector('#pe-tags').value.split(',').map(s=>s.trim()).filter(Boolean),
+    };
+    if (!body.user || !body.agent) return alert('Both user and agent text required');
+    try { await fetchJson(`/personas/${aid}/examples`, {method:'POST', body: JSON.stringify(body)});
+          modal.remove(); render(); }
+    catch (e) { alert(e.message); }
+  });
+}
+
+const SOURCE_BADGE = {
+  builtin: '<span class="tag" style="background:#e0e7ff;color:#3730a3">Built-in</span>',
+  plugin:  '<span class="tag" style="background:#dcfce7;color:#166534">Plugin</span>',
+  mcp:     '<span class="tag" style="background:#fef9c3;color:#854d0e">MCP</span>',
+  external:'<span class="tag" style="background:#fae8ff;color:#86198f">External</span>',
+};
+
+let toolFilter = { q: '', source: 'all', attention: false };
+
+// Resolve the MCP server backing a tool (for health display on its row).
+function _mcpServerOf(t, serverStatus) {
+  if (!t || t.source !== 'mcp') return null;
+  let name = '';
+  if (t.connector && t.connector.indexOf('mcp:') === 0) name = t.connector.slice(4);
+  else if ((t.id || '').indexOf('mcp.') === 0) name = (t.id.split('.')[1] || '');
+  return serverStatus[name] || null;
+}
+
+// Reasons a tool "needs attention": enabled but unwired, or MCP server offline.
+function _toolAttention(t, serverStatus) {
+  const reasons = [];
+  if (t.enabled && (t.agents || []).length === 0) reasons.push('enabled but wired to no agents');
+  const srv = _mcpServerOf(t, serverStatus);
+  if (srv && srv.enabled !== false && !srv.connected) reasons.push(`MCP server '${srv.name}' offline`);
+  return reasons;
+}
+
+async function renderTools(root) {
+  try {
+    const [tj, aj, mj] = await Promise.all([
+      fetchJson('/tools'), fetchJson('/agents'), fetchJson('/mcp/servers'),
+    ]);
+    cachedTools = tj.tools;
+    cachedAgents = aj.agents;
+    const agentIds = aj.agents.map(a => a.id);
+    const serverStatus = {};
+    for (const s of (mj.servers || [])) serverStatus[s.name] = s;
+
+    const wired = tj.tools.filter(t => (t.agents || []).length).length;
+    const attentionCount = tj.tools.filter(t => _toolAttention(t, serverStatus).length).length;
+
+    // Group tools by category (falls back to connector).
+    const groups = {};
+    for (const t of tj.tools) {
+      const g = t.category || t.connector || 'other';
+      (groups[g] = groups[g] || []).push(t);
+    }
+    const groupNames = Object.keys(groups).sort();
+
+    const agentPills = (t) => agentIds.map(aid => {
+      const on = (t.agents || []).includes(aid);
+      return `<label class="agent-pill ${on?'on':''}">
+        <input type="checkbox" data-tool="${t.id}" data-agent="${aid}" ${on?'checked':''}
+               onchange="onAgentToggle(this)"> ${aid}</label>`;
+    }).join('');
+
+    const rowFor = (t) => {
+      const onCount = (t.agents || []).filter(a => agentIds.includes(a)).length;
+      const reasons = _toolAttention(t, serverStatus);
+      const search = escapeHtml(`${t.name} ${t.id} ${t.description||''}`.toLowerCase());
+      const srv = _mcpServerOf(t, serverStatus);
+      const srvBadge = (srv && srv.enabled !== false && !srv.connected)
+        ? `<span class="tag tag-rejected" title="${escapeHtml(srv.error||'')}">⚠ server offline</span>` : '';
+      return `
+      <details class="tool-item ${t.enabled?'':'disabled'}" id="toolrow-${cssId(t.id)}"
+               data-search="${search}" data-source="${t.source||'builtin'}"
+               data-attention="${reasons.length?'1':'0'}">
+        <summary class="tool-summary">
+          <span onclick="event.stopPropagation()">
+            <label class="agent-toggle" title="${t.enabled?'Enabled — click to disable':'Disabled — click to enable'}">
+              <input type="checkbox" data-tool-enable="${t.id}" ${t.enabled?'checked':''}
+                     onchange="toggleToolEnabled(this, '${jsAttr(t.id)}')">
+              <span class="agent-toggle-slider"></span>
+            </label>
+          </span>
+          <span class="ts-main">
+            <span class="ts-name">${escapeHtml(t.name)}</span> ${SOURCE_BADGE[t.source]||''}
+            ${t.requires_consent ? `<span class="tag tag-pinned" title="Requires citizen consent">🔐 ${escapeHtml(t.consent_scope)}</span>`:''}
+            ${srvBadge}
+            <br><span class="ts-id">${escapeHtml(t.id)}</span>
+          </span>
+          <span class="tool-chip-count ${onCount===0?'none':''}">${onCount} / ${agentIds.length} agents</span>
+          <span class="tool-chevron">▶</span>
+        </summary>
+        <div class="tool-detail">
+          <div class="tool-desc">${escapeHtml((t.description||'').slice(0,220)) || 'No description.'}</div>
+          ${reasons.length ? `<div class="tool-warn">⚠ ${reasons.map(escapeHtml).join(' · ')}</div>`:''}
+          <div class="agent-grid">${agentPills(t)}</div>
+          <div class="tool-detail-actions">
+            <button class="btn btn-primary btn-sm" data-save="${t.id}" onclick="saveToolBinding('${jsAttr(t.id)}')">Save wiring</button>
+            <button class="btn btn-secondary btn-sm" onclick="testTool('${jsAttr(t.id)}')">Test</button>
+            ${(!t.binding) ? `<small style="color:#9ca3af;margin-left:4px">using in-code defaults</small>`:''}
+            <span class="agent-select-helpers">
+              <a onclick="setAllAgents('${jsAttr(t.id)}', true)">Select all</a> ·
+              <a onclick="setAllAgents('${jsAttr(t.id)}', false)">Clear</a>
+            </span>
+          </div>
+        </div>
+      </details>`;
+    };
+
+    const chip = (val, label) =>
+      `<button class="chip ${toolFilter.source===val?'on':''}" data-src="${val}" onclick="setToolFilterSource('${val}')">${label}</button>`;
+
+    root.innerHTML = `
+      <div class="card">
+        <div class="card-header">
+          <h2>Tools <span style="color:#9ca3af;font-weight:600">(${tj.tools.length} · ${wired} wired${attentionCount?` · <span style="color:#b91c1c">${attentionCount} need attention</span>`:''})</span></h2>
+          <div>
+            <button class="btn btn-secondary btn-sm" onclick="reloadTools()" title="Re-scan plugin folder + reconnect MCP servers">⟳ Reload</button>
+          </div>
+        </div>
+        <div class="card-body" style="font-size:13px;color:#6b7280">
+          Expand a tool to choose which agents may use it. Changes save to
+          <code>data/tool_bindings.json</code> and take effect on the next chat turn — no restart.
+          Source: ${SOURCE_BADGE.builtin} <code>tools.py</code> · ${SOURCE_BADGE.plugin} <code>tool_plugins/</code> · ${SOURCE_BADGE.mcp} MCP server.
+          <div class="tool-filter-row">
+            <div class="tool-filter-chips">
+              ${chip('all','All')} ${chip('builtin','Built-in')} ${chip('plugin','Plugin')} ${chip('mcp','MCP')}
+              <button id="chip-attn" class="chip ${toolFilter.attention?'on':''}" onclick="toggleAttentionFilter()">⚠ Needs attention${attentionCount?` (${attentionCount})`:''}</button>
+            </div>
+            <input class="tools-search" placeholder="🔎 Filter by name, id or description…" value="${escapeHtml(toolFilter.q)}" oninput="filterTools(this.value)">
+          </div>
+        </div>
+      </div>
+      ${mcpPanel(mj.servers || [])}
+      ${groupNames.map(g => `
+        <div class="card tool-cat">
+          <div class="card-header"><h2 style="font-size:15px">${escapeHtml(g)} <span style="color:#9ca3af;font-weight:600">(${groups[g].length})</span></h2></div>
+          <div class="card-body">
+            ${groups[g].map(rowFor).join('')}
+          </div>
+        </div>`).join('')}`;
+    applyToolFilter();
+  } catch (e) { root.innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+}
+
+// Make a tool id safe for a DOM id / inline JS string literal.
+function cssId(id) { return id.replace(/[^a-zA-Z0-9_-]/g, '_'); }
+function jsAttr(id) { return id.replace(/'/g, "\\'"); }
+
+// Master enable/disable — auto-saves immediately, preserving the saved agent
+// list (so flipping on/off never commits unsaved pill edits).
+async function toggleToolEnabled(el, toolId) {
+  const enabled = el.checked;
+  const item = el.closest('.tool-item');
+  item.classList.toggle('disabled', !enabled);
+  const t = cachedTools.find(x => x.id === toolId);
+  const agents = (t && Array.isArray(t.agents)) ? t.agents : collectToolBinding(toolId).agents;
+  try {
+    await fetchJson(`/tools/${encodeURIComponent(toolId)}/binding`, {
+      method: 'PUT', body: JSON.stringify({ enabled, agents }) });
+    if (t) { t.enabled = enabled; t.binding = true; }
+    toast(`${t ? t.name : toolId} — tool ${enabled ? 'enabled' : 'disabled'}`);
+  } catch (e) {
+    el.checked = !enabled; item.classList.toggle('disabled', enabled);
+    alert(`Failed to ${enabled ? 'enable' : 'disable'} ${toolId}: ${e.message}`);
+  }
+}
+
+// Live-update the "N / M agents" chip + pill highlight; flag the row unsaved.
+function onAgentToggle(el) {
+  el.closest('.agent-pill').classList.toggle('on', el.checked);
+  const toolId = el.getAttribute('data-tool');
+  updateToolChip(toolId);
+  markToolDirty(toolId, true);
+}
+function updateToolChip(toolId) {
+  const det = document.getElementById('toolrow-' + cssId(toolId));
+  if (!det) return;
+  const total = det.querySelectorAll('.agent-pill input').length;
+  const on = det.querySelectorAll('.agent-pill input:checked').length;
+  const chip = det.querySelector('.tool-chip-count');
+  if (chip) { chip.textContent = `${on} / ${total} agents`; chip.classList.toggle('none', on === 0); }
+}
+function setAllAgents(toolId, on) {
+  const det = document.getElementById('toolrow-' + cssId(toolId));
+  if (!det) return;
+  det.querySelectorAll('.agent-pill input').forEach(i => {
+    i.checked = on; i.closest('.agent-pill').classList.toggle('on', on);
+  });
+  updateToolChip(toolId);
+  markToolDirty(toolId, true);
+}
+// Amber-outline a row with unsaved agent-pill edits so they aren't lost silently.
+function markToolDirty(toolId, dirty) {
+  const det = document.getElementById('toolrow-' + cssId(toolId));
+  if (!det) return;
+  det.classList.toggle('dirty', dirty);
+  const btn = det.querySelector(`[data-save="${CSS.escape(toolId)}"]`);
+  if (btn) btn.textContent = dirty ? 'Save wiring •' : 'Save wiring';
+}
+
+// ---- filtering (source chips + needs-attention + text) ----
+function setToolFilterSource(src) {
+  toolFilter.source = src;
+  document.querySelectorAll('.tool-filter-chips .chip[data-src]').forEach(c =>
+    c.classList.toggle('on', c.getAttribute('data-src') === src));
+  applyToolFilter();
+}
+function toggleAttentionFilter() {
+  toolFilter.attention = !toolFilter.attention;
+  const b = document.getElementById('chip-attn');
+  if (b) b.classList.toggle('on', toolFilter.attention);
+  applyToolFilter();
+}
+function filterTools(q) { toolFilter.q = q || ''; applyToolFilter(); }
+function applyToolFilter() {
+  const q = (toolFilter.q || '').trim().toLowerCase();
+  document.querySelectorAll('.tool-cat').forEach(cat => {
+    let visible = 0;
+    cat.querySelectorAll('.tool-item').forEach(it => {
+      const okQ = !q || (it.getAttribute('data-search') || '').includes(q);
+      const okSrc = toolFilter.source === 'all' || it.getAttribute('data-source') === toolFilter.source;
+      const okAttn = !toolFilter.attention || it.getAttribute('data-attention') === '1';
+      const show = okQ && okSrc && okAttn;
+      it.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    cat.style.display = visible ? '' : 'none';
+  });
+}
+
+function collectToolBinding(toolId) {
+  const enabled = document.querySelector(`input[data-tool-enable="${CSS.escape(toolId)}"]`).checked;
+  const agents = [...document.querySelectorAll(`input[data-tool="${CSS.escape(toolId)}"]:checked`)]
+    .map(el => el.getAttribute('data-agent'));
+  return { enabled, agents };
+}
+
+// Save agent wiring IN PLACE — update cached state + chip and clear the dirty
+// flag without re-rendering, so the row the operator is working in stays open.
+async function saveToolBinding(toolId) {
+  try {
+    const body = collectToolBinding(toolId);
+    await fetchJson(`/tools/${encodeURIComponent(toolId)}/binding`, {
+      method: 'PUT', body: JSON.stringify(body),
+    });
+    const t = cachedTools.find(x => x.id === toolId);
+    if (t) { t.agents = body.agents; t.enabled = body.enabled; t.binding = true; }
+    markToolDirty(toolId, false);
+    updateToolChip(toolId);
+    toast(`Saved ${toolId}: ${body.agents.length} agent(s)`);
+  } catch (e) { alert(`Save failed: ${e.message}`); }
+}
+
+// Schema-driven test form: render a typed field per input_schema property
+// (with a raw-JSON escape hatch) instead of asking the operator to paste JSON.
+function testTool(toolId) {
+  const t = cachedTools.find(x => x.id === toolId);
+  const schema = (t && t.input_schema) || {};
+  const props = schema.properties || {};
+  const required = schema.required || [];
+  const keys = Object.keys(props);
+  const field = (k) => {
+    const p = props[k] || {};
+    const req = required.includes(k) ? '<span style="color:#dc2626">*</span>' : '';
+    const ph = escapeHtml(p.description || p.type || '');
+    let input;
+    if (p.enum)
+      input = `<select data-arg="${escapeHtml(k)}" data-type="string">${p.enum.map(v=>`<option>${escapeHtml(String(v))}</option>`).join('')}</select>`;
+    else if (p.type === 'boolean')
+      input = `<select data-arg="${escapeHtml(k)}" data-type="boolean"><option value="">(unset)</option><option value="true">true</option><option value="false">false</option></select>`;
+    else if (p.type === 'integer' || p.type === 'number')
+      input = `<input data-arg="${escapeHtml(k)}" data-type="number" type="number" placeholder="${ph}">`;
+    else
+      input = `<input data-arg="${escapeHtml(k)}" data-type="string" placeholder="${ph}">`;
+    return `<div class="tf-field"><label style="margin:0 0 3px;text-transform:none;letter-spacing:0">
+      ${escapeHtml(k)} ${req} <span style="color:#9ca3af;font-weight:400">${escapeHtml(p.type||'')}</span></label>${input}</div>`;
+  };
+  const modal = document.createElement('div');
+  modal.className = 'modal-bg';
+  modal.innerHTML = `
+    <div class="modal" style="max-width:620px">
+      <div class="modal-header">
+        <h3>Test tool — <code style="font-size:13px">${escapeHtml(toolId)}</code></h3>
+        <button class="close-btn" onclick="this.closest('.modal-bg').remove()">×</button>
+      </div>
+      <div class="modal-body">
+        ${keys.length ? keys.map(field).join('') : '<small style="color:#9ca3af">This tool takes no arguments.</small>'}
+        <details style="margin-top:10px"><summary style="cursor:pointer;font-size:12px;color:#6b7280">Advanced: raw JSON (overrides fields)</summary>
+          <textarea id="tt-raw" rows="3" style="font-family:monospace;font-size:12px;margin-top:6px" placeholder='{"key": "value"}'></textarea>
+        </details>
+        <div id="tt-out" style="margin-top:12px"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="this.closest('.modal-bg').remove()">Close</button>
+        <button class="btn btn-primary" onclick="runToolTest('${jsAttr(toolId)}', this)">Run test</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+async function runToolTest(toolId, btn) {
+  const modal = btn.closest('.modal-bg');
+  let args = {};
+  const raw = (modal.querySelector('#tt-raw') ? modal.querySelector('#tt-raw').value : '').trim();
+  if (raw) {
+    try { args = JSON.parse(raw); }
+    catch (e) { alert('Invalid JSON in advanced field'); return; }
+  } else {
+    modal.querySelectorAll('[data-arg]').forEach(el => {
+      const k = el.getAttribute('data-arg'), ty = el.getAttribute('data-type');
+      let v = el.value;
+      if (v === '' || v == null) return;            // skip unset/blank
+      if (ty === 'number') v = Number(v);
+      else if (ty === 'boolean') v = (v === 'true');
+      args[k] = v;
+    });
+  }
+  const out = modal.querySelector('#tt-out');
+  out.innerHTML = '<div class="empty">Running…</div>';
+  try {
+    const r = await fetchJson(`/tools/${encodeURIComponent(toolId)}/test`, {
+      method: 'POST', body: JSON.stringify({ args }),
+    });
+    const badge = r.ok ? '<span class="tag tag-active">ok</span>'
+                       : '<span class="tag tag-rejected">error</span>';
+    out.innerHTML = `<div style="margin-bottom:8px">${badge} <small style="color:#6b7280">args: <code>${escapeHtml(JSON.stringify(args))}</code></small></div>
+      <pre style="background:#0f172a;color:#e2e8f0;padding:12px;border-radius:8px;overflow:auto;font-size:12px;max-height:46vh">${escapeHtml(JSON.stringify(r.result ?? r.error, null, 2))}</pre>`;
+  } catch (e) { out.innerHTML = `<div class="empty">Test failed: ${escapeHtml(e.message)}</div>`; }
+}
+
+async function reloadTools() {
+  try {
+    const r = await fetchJson('/tools/reload', { method: 'POST' });
+    toast(`Reloaded: ${r.plugins_loaded} plugin(s), ${r.mcp_tools} MCP tool(s), ${r.total_tools} total`);
+    renderTools(document.getElementById('content'));
+  } catch (e) { alert(`Reload failed: ${e.message}`); }
+}
+
+// ===== MCP SERVERS =====
+function mcpStatusBadge(s) {
+  if (!s.enabled) return '<span class="tag tag-mock">disabled</span>';
+  if (s.connected) return `<span class="tag tag-active">connected · ${s.tools.length} tool(s)</span>`;
+  return `<span class="tag tag-rejected" title="${escapeHtml(s.error||'')}">not connected</span>`;
+}
+
+function mcpPanel(servers) {
+  const rows = servers.map(s => `
+    <tr>
+      <td style="vertical-align:top"><strong>${escapeHtml(s.name)}</strong>
+        <br><code style="font-size:11px;color:#6b7280">${escapeHtml(s.url)}</code>
+        <br><small style="color:#9ca3af">${escapeHtml(s.transport)}${s.auth_token_env?` · auth: ${escapeHtml(s.auth_token_env)}`:''}</small></td>
+      <td style="vertical-align:top">${mcpStatusBadge(s)}
+        ${s.error && s.enabled ? `<br><small style="color:#b91c1c">${escapeHtml(String(s.error).slice(0,80))}</small>`:''}</td>
+      <td style="vertical-align:top;white-space:nowrap">
+        <button class="btn btn-secondary btn-sm" onclick='editMcpServer(${JSON.stringify(s).replace(/'/g,"&#39;")})'>Edit</button>
+        <button class="btn btn-secondary btn-sm" onclick="deleteMcpServer('${jsAttr(s.name)}')">Delete</button>
+      </td>
+    </tr>`).join('');
+  return `
+    <div class="card">
+      <div class="card-header">
+        <h2 style="font-size:15px">🔌 MCP servers (${servers.length})</h2>
+        <button class="btn btn-primary btn-sm" onclick="addMcpServer()">+ Add server</button>
+      </div>
+      <div class="card-body" style="font-size:13px;color:#6b7280;padding-bottom:6px">
+        Connect external MCP tool servers by address. Saving connects immediately and registers
+        their tools below (badge ${SOURCE_BADGE.mcp}), wireable to agents like any other tool.
+        We store only the URL + optional auth — never the server's code.
+      </div>
+      <table>
+        <tr><th>Server</th><th>Status</th><th></th></tr>
+        ${rows || '<tr><td colspan="3"><small style="color:#9ca3af">No MCP servers configured yet.</small></td></tr>'}
+      </table>
+    </div>`;
+}
+
+function addMcpServer() { openMcpForm(null); }
+function editMcpServer(s) { openMcpForm(s); }
+
+function openMcpForm(existing) {
+  const e = existing || {};
+  const isEdit = !!existing;
+  const kw = e.tool_keywords && Object.keys(e.tool_keywords).length
+    ? JSON.stringify(e.tool_keywords, null, 2) : '';
+  const modal = document.createElement('div');
+  modal.className = 'modal-bg';
+  modal.innerHTML = `
+    <div class="modal" style="max-width:600px">
+      <div class="modal-header">
+        <h3>${isEdit?'Edit':'Add'} MCP server</h3>
+        <button class="close-btn" onclick="this.closest('.modal-bg').remove()">×</button>
+      </div>
+      <div class="modal-body">
+        <label>Name (id)</label>
+        <input id="m-name" value="${escapeHtml(e.name||'')}" ${isEdit?'readonly':''}
+               placeholder="e.g. land_records" pattern="[a-zA-Z0-9_-]+">
+        <small style="color:#9ca3af">Letters, numbers, <code>_</code> and <code>-</code> only — spaces become <code>_</code>.</small>
+        <label style="margin-top:10px">Server URL</label>
+        <input id="m-url" value="${escapeHtml(e.url||'')}" placeholder="https://host.gov.in/mcp">
+        <label style="margin-top:10px">Transport</label>
+        <select id="m-transport">
+          <option value="streamable_http" ${e.transport!=='sse'?'selected':''}>streamable_http</option>
+          <option value="sse" ${e.transport==='sse'?'selected':''}>sse</option>
+        </select>
+        <label style="margin-top:10px">Auth token env var (optional)</label>
+        <input id="m-auth" value="${escapeHtml(e.auth_token_env||'')}" placeholder="e.g. LAND_RECORDS_MCP_TOKEN">
+        <label style="margin-top:10px"><input type="checkbox" id="m-enabled" ${e.enabled!==false?'checked':''}> Enabled</label>
+        <label style="margin-top:10px">Tool keywords (optional JSON — makes remote tools chat-reachable)</label>
+        <textarea id="m-kw" rows="4" placeholder='{"land_record_status": ["mutation status", "name transfer"]}'
+                  style="font-family:monospace;font-size:12px">${escapeHtml(kw)}</textarea>
+        <div id="m-probe" style="margin-top:10px"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="testMcpConnection(this)">Test connection</button>
+        <button class="btn btn-secondary" onclick="this.closest('.modal-bg').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveMcpServer(this)">Save &amp; connect</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function readMcpForm(btn) {
+  const m = btn.closest('.modal-bg');
+  let tool_keywords = {};
+  const kwRaw = m.querySelector('#m-kw').value.trim();
+  if (kwRaw) {
+    try { tool_keywords = JSON.parse(kwRaw); }
+    catch (e) { alert('Tool keywords must be valid JSON'); return null; }
+  }
+  // Normalise the name into a valid id: spaces -> underscore, drop the rest.
+  const name = m.querySelector('#m-name').value.trim()
+    .replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
+  return {
+    m,
+    body: {
+      name,
+      url: m.querySelector('#m-url').value.trim(),
+      transport: m.querySelector('#m-transport').value,
+      auth_token_env: m.querySelector('#m-auth').value.trim(),
+      enabled: m.querySelector('#m-enabled').checked,
+      tool_keywords,
+    },
+  };
+}
+
+async function testMcpConnection(btn) {
+  const f = readMcpForm(btn); if (!f) return;
+  const out = f.m.querySelector('#m-probe');
+  if (!f.body.url) { out.innerHTML = '<small style="color:#b91c1c">Enter a URL first.</small>'; return; }
+  out.innerHTML = '<small style="color:#6b7280">Connecting…</small>';
+  try {
+    const r = await fetchJson('/mcp/test', {
+      method: 'POST', body: JSON.stringify({
+        url: f.body.url, transport: f.body.transport, auth_token_env: f.body.auth_token_env }),
+    });
+    if (r.ok) {
+      out.innerHTML = `<div style="background:#dcfce7;border:1px solid #86efac;border-radius:6px;padding:8px;font-size:12px">
+        <strong>✓ Connected.</strong> ${r.count} tool(s): ${r.tools.map(t=>`<code>${escapeHtml(t.name)}</code>`).join(', ')}</div>`;
+    } else {
+      out.innerHTML = `<div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:6px;padding:8px;font-size:12px">
+        <strong>✗ Failed:</strong> ${escapeHtml(r.error||'unknown error')}</div>`;
+    }
+  } catch (e) { out.innerHTML = `<small style="color:#b91c1c">Test failed: ${escapeHtml(e.message)}</small>`; }
+}
+
+async function saveMcpServer(btn) {
+  const f = readMcpForm(btn); if (!f) return;
+  if (!f.body.name || !f.body.url) { alert('Name and URL are required'); return; }
+  try {
+    const r = await fetchJson('/mcp/servers', { method: 'PUT', body: JSON.stringify(f.body) });
+    const st = (r.server && r.server.connected)
+      ? `connected, ${r.server.tools.length} tool(s)` : `saved but not connected${r.server&&r.server.error?` (${r.server.error})`:''}`;
+    toast(`MCP server '${f.body.name}': ${st}`);
+    f.m.remove();
+    renderTools(document.getElementById('content'));
+  } catch (e) { alert(`Save failed: ${e.message}`); }
+}
+
+async function deleteMcpServer(name) {
+  if (!confirm(`Delete MCP server '${name}'? Its tools will be removed from the registry.`)) return;
+  try {
+    await fetchJson(`/mcp/servers/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    toast(`Deleted MCP server '${name}'`);
+    renderTools(document.getElementById('content'));
+  } catch (e) { alert(`Delete failed: ${e.message}`); }
+}
+
+function toast(msg) {
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#075E54;color:#fff;padding:12px 18px;border-radius:8px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.2);font-size:13px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2600);
+}
+
+// ===== SKILLS =====
+// A skill bundles tools + an instruction fragment (+ optional RAG corpus) that
+// an agent gains as a unit. WHAT it is lives in data/skills/<id>.json; WHICH
+// agents get it lives in data/skill_bindings.json — edited here, effective next turn.
+let cachedSkills = [];
+let skillFilter = { q: '', source: 'all', attention: false };
+
+// A skill "needs attention" when it references tools not in the registry
+// (e.g. its MCP server isn't connected yet).
+function _skillAttention(s) {
+  const reasons = [];
+  if ((s.missing_tools || []).length) reasons.push(`${s.missing_tools.length} tool(s) not in registry`);
+  return reasons;
+}
+
+async function renderSkills(root) {
+  try {
+    const [sj, aj, tj] = await Promise.all([
+      fetchJson('/skills'), fetchJson('/agents'), fetchJson('/tools'),
+    ]);
+    cachedSkills = sj.skills;
+    cachedAgents = aj.agents;
+    const agentIds = aj.agents.map(a => a.id);
+    window._skillToolChoices = tj.tools.map(t => t.id);
+
+    const wired = sj.skills.filter(s => (s.agents || []).length).length;
+    const attentionCount = sj.skills.filter(s => _skillAttention(s).length).length;
+
+    const agentPills = (s) => agentIds.map(aid => {
+      const on = (s.agents || []).includes(aid);
+      return `<label class="agent-pill ${on?'on':''}">
+        <input type="checkbox" data-skill="${s.id}" data-agent="${aid}" ${on?'checked':''}
+               onchange="onSkillAgentToggle(this)"> ${aid}</label>`;
+    }).join('');
+
+    const rowFor = (s) => {
+      const onCount = (s.agents || []).filter(a => agentIds.includes(a)).length;
+      const reasons = _skillAttention(s);
+      const miss = s.missing_tools || [];
+      const search = escapeHtml(`${s.name} ${s.id} ${s.description||''}`.toLowerCase());
+      const toolChips = (s.tool_ids || []).map(tid => {
+        const bad = miss.includes(tid);
+        return `<code style="background:${bad?'#fee2e2':'#f3f4f6'};padding:1px 6px;border-radius:3px;margin:0 4px 4px 0;display:inline-block" title="${bad?'not in registry yet (MCP not connected?)':''}">${escapeHtml(tid)}</code>`;
+      }).join('') || '<small style="color:#9ca3af">no tools</small>';
+      return `
+      <details class="tool-item skill-item ${s.enabled?'':'disabled'}" id="skillrow-${cssId(s.id)}"
+               data-search="${search}" data-source="${s.source||'builtin'}"
+               data-attention="${reasons.length?'1':'0'}">
+        <summary class="tool-summary">
+          <span onclick="event.stopPropagation()">
+            <label class="agent-toggle" title="${s.enabled?'Enabled — click to disable':'Disabled — click to enable'}">
+              <input type="checkbox" data-skill-enable="${s.id}" ${s.enabled?'checked':''}
+                     onchange="toggleSkillEnabled(this, '${jsAttr(s.id)}')">
+              <span class="agent-toggle-slider"></span>
+            </label>
+          </span>
+          <span class="ts-main">
+            <span class="ts-name">${escapeHtml(s.name)}</span> ${SOURCE_BADGE[s.source]||''}
+            ${reasons.length ? `<span class="tag tag-rejected" title="${escapeHtml(reasons.join('; '))}">⚠ ${miss.length} tool(s) missing</span>`:''}
+            <br><span class="ts-id">${escapeHtml(s.id)}</span>
+          </span>
+          <span class="tool-chip-count ${onCount===0?'none':''}">${onCount} / ${agentIds.length} agents</span>
+          <span class="tool-chevron">▶</span>
+        </summary>
+        <div class="tool-detail">
+          <div class="tool-desc">${escapeHtml((s.description||'').slice(0,240)) || 'No description.'}</div>
+          <div style="margin-bottom:10px">${toolChips}</div>
+          ${s.corpus_id ? `<div style="font-size:12px;color:#6b7280;margin-bottom:10px">📚 RAG corpus: <code>${escapeHtml(s.corpus_id)}</code></div>`:''}
+          ${reasons.length ? `<div class="tool-warn">⚠ ${reasons.map(escapeHtml).join(' · ')} — connect the MCP server or fix the tool id.</div>`:''}
+          <div class="agent-grid">${agentPills(s)}</div>
+          <div class="tool-detail-actions">
+            <button class="btn btn-primary btn-sm" data-skill-save="${s.id}" onclick="saveSkillBinding('${jsAttr(s.id)}')">Save wiring</button>
+            <button class="btn btn-secondary btn-sm" onclick='editSkill(${JSON.stringify(s).replace(/'/g,"&#39;")})'>Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteSkill('${jsAttr(s.id)}')">Delete</button>
+            ${(!s.binding) ? `<small style="color:#9ca3af;margin-left:4px">using author defaults</small>`:''}
+            <span class="agent-select-helpers">
+              <a onclick="setAllSkillAgents('${jsAttr(s.id)}', true)">Select all</a> ·
+              <a onclick="setAllSkillAgents('${jsAttr(s.id)}', false)">Clear</a>
+            </span>
+          </div>
+        </div>
+      </details>`;
+    };
+
+    const chip = (val, label) =>
+      `<button class="chip ${skillFilter.source===val?'on':''}" data-sksrc="${val}" onclick="setSkillFilterSource('${val}')">${label}</button>`;
+
+    root.innerHTML = `
+      <div class="card">
+        <div class="card-header">
+          <h2>Skills <span style="color:#9ca3af;font-weight:600">(${sj.skills.length} · ${wired} wired${attentionCount?` · <span style="color:#b91c1c">${attentionCount} need attention</span>`:''})</span>${sj.enabled?'':' <span class="tag tag-mock">disabled (SKILLS_ENABLED=false)</span>'}</h2>
+          <div>
+            <button class="btn btn-primary btn-sm" onclick="addSkill()">+ Add skill</button>
+            <button class="btn btn-primary btn-sm" onclick="uploadSkillDialog()" title="Upload a skill folder or .zip — validated, then attached and wired to agents">⬆ Upload skill</button>
+            <button class="btn btn-primary btn-sm" onclick="openCallbackBuilder(null)" title="Build an outbound callback agent (RAG + MCP + skill), no code">📞 + Callback agent</button>
+            <button class="btn btn-secondary btn-sm" onclick="reloadSkills()" title="Re-scan data/skills/">⟳ Reload</button>
+          </div>
+        </div>
+        <div class="card-body" style="font-size:13px;color:#6b7280">
+          A skill bundles existing tools with an instruction fragment (and optional RAG corpus).
+          Expand one to wire it to agents; its tools appear to those agents alongside their own,
+          and its instructions are injected into the system prompt. Saves to <code>data/skills/</code>
+          + <code>data/skill_bindings.json</code>, effective next chat turn.
+          ${SOURCE_BADGE.builtin} shipped · ${SOURCE_BADGE.external} added here.
+          <div class="tool-filter-row">
+            <div class="tool-filter-chips">
+              ${chip('all','All')} ${chip('builtin','Built-in')} ${chip('external','External')}
+              <button id="chip-sk-attn" class="chip ${skillFilter.attention?'on':''}" onclick="toggleSkillAttention()">⚠ Needs attention${attentionCount?` (${attentionCount})`:''}</button>
+            </div>
+            <input class="tools-search" placeholder="🔎 Filter by name, id or description…" value="${escapeHtml(skillFilter.q)}" oninput="filterSkills(this.value)">
+          </div>
+        </div>
+      </div>
+      <div class="card tool-cat" id="skill-cat">
+        <div class="card-body">
+          ${sj.skills.map(rowFor).join('') || '<div class="empty">No skills yet. Click “Add skill”.</div>'}
+        </div>
+      </div>`;
+    applySkillFilter();
+  } catch (e) { root.innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+}
+
+function collectSkillBinding(skillId) {
+  const enabled = document.querySelector(`input[data-skill-enable="${CSS.escape(skillId)}"]`).checked;
+  const agents = [...document.querySelectorAll(`input[data-skill="${CSS.escape(skillId)}"]:checked`)]
+    .map(el => el.getAttribute('data-agent'));
+  return { enabled, agents };
+}
+
+// Save wiring in place (keep the open row); mirror of saveToolBinding.
+async function saveSkillBinding(skillId) {
+  try {
+    const body = collectSkillBinding(skillId);
+    await fetchJson(`/skills/${encodeURIComponent(skillId)}/binding`, {
+      method: 'PUT', body: JSON.stringify(body),
+    });
+    const s = cachedSkills.find(x => x.id === skillId);
+    if (s) { s.agents = body.agents; s.enabled = body.enabled; s.binding = true; }
+    markSkillDirty(skillId, false);
+    updateSkillChip(skillId);
+    toast(`Saved ${skillId}: ${body.agents.length} agent(s)`);
+  } catch (e) { alert(`Save failed: ${e.message}`); }
+}
+
+// Master enable/disable — auto-saves, preserving the saved agent list.
+async function toggleSkillEnabled(el, skillId) {
+  const enabled = el.checked;
+  const item = el.closest('.tool-item');
+  item.classList.toggle('disabled', !enabled);
+  const s = cachedSkills.find(x => x.id === skillId);
+  const agents = (s && Array.isArray(s.agents)) ? s.agents : collectSkillBinding(skillId).agents;
+  try {
+    await fetchJson(`/skills/${encodeURIComponent(skillId)}/binding`, {
+      method: 'PUT', body: JSON.stringify({ enabled, agents }) });
+    if (s) { s.enabled = enabled; s.binding = true; }
+    toast(`${s ? s.name : skillId} — skill ${enabled ? 'enabled' : 'disabled'}`);
+  } catch (e) {
+    el.checked = !enabled; item.classList.toggle('disabled', enabled);
+    alert(`Failed to ${enabled ? 'enable' : 'disable'} ${skillId}: ${e.message}`);
+  }
+}
+
+function onSkillAgentToggle(el) {
+  el.closest('.agent-pill').classList.toggle('on', el.checked);
+  const id = el.getAttribute('data-skill');
+  updateSkillChip(id);
+  markSkillDirty(id, true);
+}
+function updateSkillChip(skillId) {
+  const det = document.getElementById('skillrow-' + cssId(skillId));
+  if (!det) return;
+  const total = det.querySelectorAll('.agent-pill input').length;
+  const on = det.querySelectorAll('.agent-pill input:checked').length;
+  const chip = det.querySelector('.tool-chip-count');
+  if (chip) { chip.textContent = `${on} / ${total} agents`; chip.classList.toggle('none', on === 0); }
+}
+function setAllSkillAgents(skillId, on) {
+  const det = document.getElementById('skillrow-' + cssId(skillId));
+  if (!det) return;
+  det.querySelectorAll('.agent-pill input').forEach(i => {
+    i.checked = on; i.closest('.agent-pill').classList.toggle('on', on);
+  });
+  updateSkillChip(skillId);
+  markSkillDirty(skillId, true);
+}
+function markSkillDirty(skillId, dirty) {
+  const det = document.getElementById('skillrow-' + cssId(skillId));
+  if (!det) return;
+  det.classList.toggle('dirty', dirty);
+  const btn = det.querySelector(`[data-skill-save="${CSS.escape(skillId)}"]`);
+  if (btn) btn.textContent = dirty ? 'Save wiring •' : 'Save wiring';
+}
+
+// ---- skill filtering (source chips + needs-attention + text) ----
+function setSkillFilterSource(src) {
+  skillFilter.source = src;
+  document.querySelectorAll('.tool-filter-chips .chip[data-sksrc]').forEach(c =>
+    c.classList.toggle('on', c.getAttribute('data-sksrc') === src));
+  applySkillFilter();
+}
+function toggleSkillAttention() {
+  skillFilter.attention = !skillFilter.attention;
+  const b = document.getElementById('chip-sk-attn');
+  if (b) b.classList.toggle('on', skillFilter.attention);
+  applySkillFilter();
+}
+function filterSkills(q) { skillFilter.q = q || ''; applySkillFilter(); }
+function applySkillFilter() {
+  const q = (skillFilter.q || '').trim().toLowerCase();
+  document.querySelectorAll('.skill-item').forEach(it => {
+    const okQ = !q || (it.getAttribute('data-search') || '').includes(q);
+    const okSrc = skillFilter.source === 'all' || it.getAttribute('data-source') === skillFilter.source;
+    const okAttn = !skillFilter.attention || it.getAttribute('data-attention') === '1';
+    it.style.display = (okQ && okSrc && okAttn) ? '' : 'none';
+  });
+}
+
+async function replayCallbackDlq() {
+  try {
+    const r = await fetchJson('/callback/dlq/replay', { method: 'POST' });
+    toast(`DLQ replay: ${r.delivered} delivered, ${r.still_failing} still failing`);
+    render();
+  } catch (e) { alert(`Replay failed: ${e.message}`); }
+}
+
+// Upload a self-contained skill as a .zip or a folder. The backend validates
+// the bundle, registers the skill (+ any drop-in tools / corpus it ships), and
+// optionally wires it to the agents ticked here so it's immediately usable.
+async function uploadSkillDialog() {
+  const agents = (cachedAgents && cachedAgents.length)
+    ? cachedAgents : ((await fetchJson('/agents')).agents || []);
+  const agentBoxes = agents.map(a =>
+    `<label class="agent-pill"><input type="checkbox" class="us-agent" value="${a.id}"> ${a.id}</label>`
+  ).join('') || '<small style="color:#9ca3af">No agents.</small>';
+  const modal = document.createElement('div');
+  modal.className = 'modal-bg';
+  modal.innerHTML = `
+    <div class="modal" style="max-width:640px">
+      <div class="modal-header">
+        <h3>Upload a skill</h3>
+        <button class="close-btn" onclick="this.closest('.modal-bg').remove()">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size:13px;color:#374151;margin-bottom:14px;line-height:1.5">
+          Upload a self-contained skill as a <strong>.zip</strong> or pick its <strong>folder</strong>.
+          It is validated, then attached so agents can use it. Expected contents:
+          <ul style="margin:8px 0 0 18px">
+            <li><strong>skill.json</strong> <em>or</em> <strong>SKILL.md</strong> (required) — <code>id</code>, <code>name</code>, <code>instructions</code>, <code>tool_ids</code>, optional <code>corpus_id</code>. (SKILL.md = YAML frontmatter for the fields + a markdown body that becomes the instructions.)</li>
+            <li><strong>tools/*.py</strong> (optional) — drop-in <code>@tool</code> plugins the skill needs</li>
+            <li><strong>corpus.jsonl</strong> (optional) — RAG knowledge for the skill</li>
+          </ul>
+        </div>
+        <label>Skill .zip file</label>
+        <input id="us-zip" type="file" accept=".zip">
+        <div style="text-align:center;color:#9ca3af;font-size:12px;margin:8px 0">— or —</div>
+        <label>Skill folder</label>
+        <input id="us-dir" type="file" webkitdirectory directory multiple>
+        <label style="margin-top:12px">Wire to agents (optional — you can also do this later on this page)</label>
+        <div class="agent-grid">${agentBoxes}</div>
+        <div id="us-status" style="margin-top:14px"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="this.closest('.modal-bg').remove()">Cancel</button>
+        <button class="btn btn-primary" id="us-submit">Validate &amp; attach</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  modal.querySelector('#us-submit').addEventListener('click', async () => {
+    const zip = modal.querySelector('#us-zip').files[0];
+    const dirFiles = modal.querySelector('#us-dir').files;
+    const status = modal.querySelector('#us-status');
+    if (!zip && (!dirFiles || !dirFiles.length)) {
+      return alert('Pick a .zip file or a folder first.');
+    }
+    if (zip && dirFiles && dirFiles.length) {
+      return alert('Pick EITHER a .zip OR a folder, not both.');
+    }
+    const agentsSel = [...modal.querySelectorAll('.us-agent:checked')].map(c => c.value);
+    const fd = new FormData();
+    fd.append('uploaded_by', 'admin');
+    if (agentsSel.length) fd.append('agents', JSON.stringify(agentsSel));
+    if (zip) {
+      fd.append('mode', 'zip');
+      fd.append('file', zip);
+    } else {
+      fd.append('mode', 'folder');
+      // Preserve each file's relative path so the backend can rebuild the folder.
+      for (const f of dirFiles) fd.append('files', f, f.webkitRelativePath || f.name);
+    }
+    status.innerHTML = '⏳ Uploading &amp; validating…';
+    try {
+      const r = await fetch(`${BASE}/api/v1/admin/skills/upload`, { method: 'POST', body: fd });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || j.ok === false) {
+        throw new Error(j.detail || j.error || (`HTTP ${r.status}`));
+      }
+      status.innerHTML = `<div style="background:#dcfce7;border:1px solid #86efac;padding:10px;border-radius:6px;font-size:12px;color:#166534">
+        ✅ Skill <strong>${escapeHtml(j.skill_id || '(unknown)')}</strong> attached${(j.agents && j.agents.length) ? ` · wired to ${j.agents.map(escapeHtml).join(', ')}` : ''}.</div>`;
+      toast(`Uploaded skill ${j.skill_id || ''}`);
+      setTimeout(() => { modal.remove(); renderSkills(document.getElementById('content')); }, 1300);
+    } catch (e) {
+      status.innerHTML = `<div style="background:#fee2e2;border:1px solid #fca5a5;padding:10px;border-radius:6px;font-size:12px;color:#991b1b">❌ ${escapeHtml(e.message)}</div>`;
+    }
+  });
+}
+
+function addSkill() { openSkillForm(null); }
+function editSkill(s) { if (s && s.is_callback) return openCallbackBuilder(s); openSkillForm(s); }
+
+// Render a skill as a SKILL.md (frontmatter + body) for the markdown tab.
+function _skillToMd(e) {
+  const t = (e.tool_ids || []);
+  const toolsBlock = t.length ? ('tool_ids:\n' + t.map(x => '  - ' + x).join('\n')) : 'tool_ids: []';
+  return `---
+id: ${e.id || ''}
+name: ${e.name || ''}
+description: ${e.description || ''}
+${toolsBlock}
+corpus_id: "${e.corpus_id || ''}"
+enabled: ${e.enabled !== false}
+---
+
+${e.instructions || ''}`;
+}
+
+// Toggle the Add/Edit skill modal between the form fields and the SKILL.md editor.
+function skillTab(btn, mode) {
+  const m = btn.closest('.modal');
+  m.querySelectorAll('[data-sktab]').forEach(b => b.classList.toggle('on', b.dataset.sktab === mode));
+  m.querySelector('#sk-mode-form').style.display = mode === 'form' ? '' : 'none';
+  m.querySelector('#sk-mode-md').style.display = mode === 'md' ? '' : 'none';
+}
+
+function openSkillForm(existing) {
+  const e = existing || {};
+  const modal = document.createElement('div');
+  modal.className = 'modal-bg';
+  modal.innerHTML = `
+    <div class="modal" style="max-width:640px">
+      <div class="modal-header">
+        <h3>${existing?'Edit':'Add'} skill</h3>
+        <button class="close-btn" onclick="this.closest('.modal-bg').remove()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="tool-filter-chips" style="margin-bottom:12px">
+          <button class="chip on" data-sktab="form" onclick="skillTab(this,'form')">Form fields</button>
+          <button class="chip" data-sktab="md" onclick="skillTab(this,'md')">SKILL.md</button>
+        </div>
+        <div id="sk-mode-form">
+          <label style="display:block;font-size:12px;color:#6b7280;font-weight:600;margin:6px 0 2px">ID (a-z, 0-9, _ -)</label>
+          <input id="sk-id" type="text" value="${escapeHtml(e.id||'')}" ${existing?'readonly':''} placeholder="land_dispute" style="width:100%">
+          <label style="display:block;font-size:12px;color:#6b7280;font-weight:600;margin:8px 0 2px">Name</label>
+          <input id="sk-name" type="text" value="${escapeHtml(e.name||'')}" placeholder="Land Dispute Assistant" style="width:100%">
+          <label style="display:block;font-size:12px;color:#6b7280;font-weight:600;margin:8px 0 2px">Description</label>
+          <input id="sk-desc" type="text" value="${escapeHtml(e.description||'')}" style="width:100%">
+          <label style="display:block;font-size:12px;color:#6b7280;font-weight:600;margin:8px 0 2px">Instructions (injected into the system prompt)</label>
+          <textarea id="sk-instr" rows="4" style="width:100%">${escapeHtml(e.instructions||'')}</textarea>
+          <label style="display:block;font-size:12px;color:#6b7280;font-weight:600;margin:8px 0 2px">Tool IDs (comma or newline separated)</label>
+          <textarea id="sk-tools" rows="2" placeholder="digilocker.fetch_patta, cmo.create_grievance" style="width:100%">${escapeHtml((e.tool_ids||[]).join(', '))}</textarea>
+          <small style="color:#9ca3af">Available: ${(window._skillToolChoices||[]).slice(0,40).map(escapeHtml).join(', ')}${(window._skillToolChoices||[]).length>40?'…':''}</small>
+          <label style="display:block;font-size:12px;color:#6b7280;font-weight:600;margin:8px 0 2px">RAG corpus id (optional)</label>
+          <input id="sk-corpus" type="text" value="${escapeHtml(e.corpus_id||'')}" placeholder="revenue" style="width:100%">
+        </div>
+        <div id="sk-mode-md" style="display:none">
+          <small style="color:#6b7280;display:block;margin-bottom:6px">YAML frontmatter (id, name, description, tool_ids, corpus_id) then a markdown body that becomes the <strong>instructions</strong>. Saves as <code>data/skills/&lt;id&gt;.md</code>.</small>
+          <textarea id="sk-md" rows="16" style="width:100%;font-family:'Consolas','Menlo',monospace;font-size:12px">${escapeHtml(_skillToMd(e))}</textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="this.closest('.modal-bg').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitSkill(this)">Save</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+async function submitSkill(btn) {
+  const modal = btn.closest('.modal-bg');
+  // SKILL.md tab active? Save via the markdown endpoint (persists as <id>.md).
+  const mdPane = modal.querySelector('#sk-mode-md');
+  if (mdPane && mdPane.style.display !== 'none') {
+    const markdown = modal.querySelector('#sk-md').value;
+    try {
+      const r = await fetchJson('/skills/md', {
+        method: 'POST', body: JSON.stringify({ markdown, agents: [], overwrite: true }),
+      });
+      if (r.ok === false) throw new Error((r.errors || []).join('; ') || 'validation failed');
+      modal.remove();
+      toast(`Saved SKILL.md ${r.skill_id || ''}`);
+      if ((r.warnings || []).length) alert('Saved with warnings:\n- ' + r.warnings.join('\n- '));
+      renderSkills(document.getElementById('content'));
+    } catch (e) { alert(`Save failed: ${e.message}`); }
+    return;
+  }
+  const val = id => modal.querySelector(id).value.trim();
+  const toolIds = val('#sk-tools').split(/[,\n]/).map(s => s.trim()).filter(Boolean);
+  const body = {
+    id: val('#sk-id'), name: val('#sk-name') || val('#sk-id'),
+    description: val('#sk-desc'), instructions: val('#sk-instr'),
+    tool_ids: toolIds, corpus_id: val('#sk-corpus'),
+    default_agents: [], enabled: true,
+  };
+  if (!body.id) { alert('ID is required'); return; }
+  try {
+    await fetchJson('/skills', { method: 'PUT', body: JSON.stringify(body) });
+    modal.remove();
+    toast(`Saved skill ${body.id}`);
+    renderSkills(document.getElementById('content'));
+  } catch (e) { alert(`Save failed: ${e.message}`); }
+}
+
+async function deleteSkill(skillId) {
+  if (!confirm(`Delete skill ${skillId}? (its JSON file + wiring are removed)`)) return;
+  try {
+    await fetchJson(`/skills/${encodeURIComponent(skillId)}`, { method: 'DELETE' });
+    toast(`Deleted ${skillId}`);
+    renderSkills(document.getElementById('content'));
+  } catch (e) { alert(`Delete failed: ${e.message}`); }
+}
+
+async function reloadSkills() {
+  try {
+    const r = await fetchJson('/skills/reload', { method: 'POST' });
+    toast(`Reloaded ${r.skills_loaded} skill(s)`);
+    renderSkills(document.getElementById('content'));
+  } catch (e) { alert(`Reload failed: ${e.message}`); }
+}
+
+// ===== CALLBACK BUILDER (outbound agent: RAG + MCP + skill, no code) =====
+// Authors a skill's `outbound` contract and PUTs it to /skills. The backend
+// validator (outbound_contract.py) is the guardrail — 400s surface inline.
+function _kvToObj(s) {            // "yes:a, no:b" -> {yes:'a', no:'b'}
+  const o = {};
+  (s || '').split(',').forEach(p => {
+    const i = p.indexOf(':'); if (i < 0) return;
+    const k = p.slice(0, i).trim(), v = p.slice(i + 1).trim();
+    if (k) o[k] = v;
+  });
+  return o;
+}
+function _objToKv(o) { return Object.entries(o || {}).map(([k, v]) => `${k}:${v}`).join(', '); }
+function _csv(s) { return (s || '').split(/[,\n]/).map(x => x.trim()).filter(Boolean); }
+
+async function openCallbackBuilder(existing) {
+  let grammar, tools = [], corpora = [];
+  try {
+    [grammar] = await Promise.all([fetchJson('/callback/grammar')]);
+    try { tools = (await fetchJson('/tools')).tools || []; } catch (e) {}
+  } catch (e) { alert(`Could not load callback grammar: ${e.message}`); return; }
+  const ob = (existing && existing.outbound) || null;
+  window._cbState = {
+    grammar,
+    steps: ob ? JSON.parse(JSON.stringify(ob.steps || [])) : [],
+    mcpTools: tools.filter(t => (t.id || '').startsWith('mcp.')).map(t => t.id),
+  };
+  const g = grammar, e = existing || {};
+  const cg = (ob && ob.consent_gate) || {};
+  const gt = (ob && ob.ground_truth) || {};
+  const rp = (ob && ob.retry_policy) || {};
+  const outProps = ob && ob.output_schema && ob.output_schema.properties
+    ? Object.keys(ob.output_schema.properties).join(', ') : 'outcome, confidence, answers, inconsistencies';
+  const tmplOpts = g.templates.map((t, i) => `<option value="${i}">${escapeHtml(t.label)}</option>`).join('');
+
+  const modal = document.createElement('div');
+  modal.className = 'modal-bg';
+  modal.innerHTML = `
+    <div class="modal" style="max-width:820px">
+      <div class="modal-header">
+        <h3>${existing ? 'Edit' : 'New'} callback agent <span style="color:#9ca3af;font-weight:600">— outbound skill</span></h3>
+        <button class="close-btn" onclick="this.closest('.modal-bg').remove()">×</button>
+      </div>
+      <div class="modal-body" style="max-height:72vh;overflow:auto">
+        ${existing ? '' : `<div style="margin-bottom:10px"><label style="font-size:12px;color:#6b7280;font-weight:600;margin-right:6px">Start from template</label>
+          <select id="cb-tmpl" onchange="cbLoadTemplate(this.value)"><option value="">— blank —</option>${tmplOpts}</select></div>`}
+
+        <h4 style="margin:6px 0">1 · Identity</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label class="cbl">ID</label><input id="cb-id" value="${escapeHtml(e.id||'')}" ${existing?'readonly':''} placeholder="customer_reference_verification" style="width:100%"></div>
+          <div><label class="cbl">Name</label><input id="cb-name" value="${escapeHtml(e.name||'')}" placeholder="Customer Reference Verification" style="width:100%"></div>
+        </div>
+        <label class="cbl">Description</label><input id="cb-desc" value="${escapeHtml(e.description||'')}" style="width:100%">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label class="cbl">Channel</label>
+            <select id="cb-channel" style="width:100%">${(g.channels||['voice_outbound']).map(c=>`<option ${((ob&&ob.channel)||'voice_outbound')===c?'selected':''}>${c}</option>`).join('')}</select></div>
+          <div><label class="cbl">Languages (comma)</label><input id="cb-langs" value="${escapeHtml(((ob&&ob.languages)||['hi-IN','en-IN']).join(', '))}" style="width:100%"></div>
+        </div>
+
+        <h4 style="margin:12px 0 6px">2 · Knowledge — Skill · RAG · MCP</h4>
+        <label class="cbl">Skill instructions (agent role)</label>
+        <textarea id="cb-instr" rows="3" style="width:100%">${escapeHtml(e.instructions||'')}</textarea>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label class="cbl">RAG corpus id (policy/objections)</label><input id="cb-corpus" value="${escapeHtml(e.corpus_id||'')}" placeholder="verification_policy" style="width:100%"></div>
+          <div><label class="cbl">MCP / tool ids (comma)</label><input id="cb-tools" value="${escapeHtml((e.tool_ids||[]).join(', '))}" placeholder="mcp.loan_core.get_application" style="width:100%"></div>
+        </div>
+        <small style="color:#9ca3af">MCP available: ${(window._cbState.mcpTools||[]).slice(0,12).map(escapeHtml).join(', ')||'(none connected)'}</small>
+
+        <h4 style="margin:12px 0 6px">3 · Consent gate &amp; ground truth</h4>
+        <label class="cbl">Identity-confirm script</label>
+        <input id="cb-gate" value="${escapeHtml(cg.script||'Hello, am I speaking with {reference_name}?')}" style="width:100%">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label class="cbl">On wrong person → outcome</label><input id="cb-wrong" value="${escapeHtml(cg.on_wrong_person||'wrong_person')}" style="width:100%"></div>
+          <div><label class="cbl">Ground-truth MCP tool (optional)</label><input id="cb-gt-tool" value="${escapeHtml(gt.tool||'')}" placeholder="mcp.loan_core.get_application" style="width:100%"></div>
+        </div>
+        <label class="cbl">Ground-truth arg key (dot path into payload)</label>
+        <input id="cb-gt-arg" value="${escapeHtml(gt.arg_key||'')}" placeholder="metadata.loan_application_id" style="width:100%">
+
+        <h4 style="margin:12px 0 6px">4 · Conversation steps</h4>
+        <div id="cb-steps"></div>
+        <button class="btn btn-secondary btn-sm" onclick="cbAddStep()">+ Add step</button>
+
+        <h4 style="margin:12px 0 6px">5 · Output &amp; delivery</h4>
+        <label class="cbl">Result fields (comma → output_schema)</label>
+        <input id="cb-out" value="${escapeHtml(outProps)}" style="width:100%">
+        <label class="cbl">Terminal outcomes (comma)</label>
+        <input id="cb-outcomes" value="${escapeHtml(((ob&&ob.terminal_outcomes)||['verified','inconsistent','refused','wrong_person','unreachable']).join(', '))}" style="width:100%">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <div><label class="cbl">Max attempts</label><input id="cb-attempts" type="number" min="1" max="5" value="${rp.max_attempts||3}" style="width:100%"></div>
+          <div><label class="cbl">Backoff</label><select id="cb-backoff" style="width:100%">${g.backoff.map(b=>`<option ${rp.backoff===b?'selected':''}>${b}</option>`).join('')}</select></div>
+          <div><label class="cbl">Retry on (comma)</label><input id="cb-retryon" value="${escapeHtml((rp.retry_on||['no_answer','voicemail','busy']).join(', '))}" style="width:100%"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <span id="cb-err" style="color:#b91c1c;font-size:13px;margin-right:auto"></span>
+        <button class="btn btn-secondary" onclick="this.closest('.modal-bg').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitCallback(this)">Save callback agent</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  if (!window._cbState.steps.length && !existing) cbAddStep(); else cbRenderSteps();
+}
+
+function cbLoadTemplate(idx) {
+  if (idx === '') return;
+  const t = window._cbState.grammar.templates[+idx]; if (!t) return;
+  const ob = JSON.parse(JSON.stringify(t.outbound));
+  const m = document.querySelector('.modal-bg .modal');
+  const set = (id, v) => { const el = m.querySelector(id); if (el) el.value = v; };
+  set('#cb-langs', (ob.languages||[]).join(', '));
+  set('#cb-gate', (ob.consent_gate||{}).script || '');
+  set('#cb-wrong', (ob.consent_gate||{}).on_wrong_person || 'wrong_person');
+  set('#cb-gt-tool', (ob.ground_truth||{}).tool || '');
+  set('#cb-gt-arg', (ob.ground_truth||{}).arg_key || '');
+  set('#cb-outcomes', (ob.terminal_outcomes||[]).join(', '));
+  set('#cb-out', Object.keys((ob.output_schema||{}).properties||{}).join(', '));
+  set('#cb-tools', (t.outbound.steps||[]).filter(s=>s.tool).map(s=>s.tool)
+        .concat((ob.ground_truth||{}).tool?[ob.ground_truth.tool]:[]).join(', '));
+  window._cbState.steps = ob.steps || [];
+  cbRenderSteps();
+}
+
+function cbAddStep() { window._cbState.steps.push({ id: 's' + (window._cbState.steps.length+1), type: 'ask', capture: 'free_text' }); cbRenderSteps(); }
+function cbRemoveStep(i) { window._cbState.steps.splice(i, 1); cbRenderSteps(); }
+function cbMoveStep(i, d) { const s = window._cbState.steps, j = i + d; if (j<0||j>=s.length) return; [s[i],s[j]]=[s[j],s[i]]; cbRenderSteps(); }
+function cbField(i, k, v) { window._cbState.steps[i][k] = v; }
+function cbTypeChange(i, t) { const st = window._cbState.steps[i]; st.type = t; if (t==='ask'&&!st.capture) st.capture='free_text'; cbRenderSteps(); }
+
+function cbRenderSteps() {
+  const g = window._cbState.grammar;
+  const box = document.getElementById('cb-steps'); if (!box) return;
+  box.innerHTML = window._cbState.steps.map((s, i) => {
+    const typeSel = g.step_types.map(t => `<option ${s.type===t?'selected':''}>${t}</option>`).join('');
+    let fields = '';
+    if (s.type === 'inform') {
+      fields = `<input placeholder="say…" value="${escapeHtml(s.say||'')}" oninput="cbField(${i},'say',this.value)" style="width:100%">`;
+    } else if (s.type === 'ask') {
+      const capSel = g.capture_types.map(c => `<option ${s.capture===c?'selected':''}>${c}</option>`).join('');
+      fields = `<input placeholder="ask…" value="${escapeHtml(s.ask||'')}" oninput="cbField(${i},'ask',this.value)" style="width:100%">
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:6px;margin-top:4px">
+          <select onchange="cbField(${i},'capture',this.value)">${capSel}</select>
+          <input placeholder="verify_against (e.g. ground_truth.relationship)" value="${escapeHtml(s.verify_against||'')}" oninput="cbField(${i},'verify_against',this.value)">
+        </div>
+        ${s.capture==='choice'?`<input placeholder="choices (comma)" value="${escapeHtml((s.choices||[]).join(', '))}" oninput="cbField(${i},'choices',this.value.split(',').map(x=>x.trim()).filter(Boolean))" style="width:100%;margin-top:4px">`:''}`;
+    } else if (s.type === 'action') {
+      fields = `<input placeholder="tool (mcp.…)" value="${escapeHtml(s.tool||'')}" oninput="cbField(${i},'tool',this.value)" style="width:100%">
+        <input placeholder="args (key:value, comma)" value="${escapeHtml(_objToKv(s.args))}" oninput="cbField(${i},'args',_kvToObj(this.value))" style="width:100%;margin-top:4px">
+        <input placeholder="say after (optional)" value="${escapeHtml(s.say_result||'')}" oninput="cbField(${i},'say_result',this.value)" style="width:100%;margin-top:4px">`;
+    } else if (s.type === 'branch') {
+      fields = `<input placeholder="on (yes:step_a, no:step_b)" value="${escapeHtml(_objToKv(s.on))}" oninput="cbField(${i},'on',_kvToObj(this.value))" style="width:100%">
+        <input placeholder="default_next (optional)" value="${escapeHtml(s.default_next||'')}" oninput="cbField(${i},'default_next',this.value)" style="width:100%;margin-top:4px">`;
+    }
+    return `<div class="tool-item" style="padding:8px;margin-bottom:6px">
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
+        <input value="${escapeHtml(s.id||'')}" oninput="cbField(${i},'id',this.value)" placeholder="id" style="width:120px">
+        <select onchange="cbTypeChange(${i},this.value)" style="width:110px">${typeSel}</select>
+        <input placeholder="next (optional)" value="${escapeHtml(s.next||'')}" oninput="cbField(${i},'next',this.value)" style="width:140px">
+        <span style="margin-left:auto"></span>
+        <button class="btn btn-secondary btn-sm" onclick="cbMoveStep(${i},-1)">↑</button>
+        <button class="btn btn-secondary btn-sm" onclick="cbMoveStep(${i},1)">↓</button>
+        <button class="btn btn-danger btn-sm" onclick="cbRemoveStep(${i})">✕</button>
+      </div>
+      ${fields}
+    </div>`;
+  }).join('') || '<div class="empty">No steps yet — add one.</div>';
+}
+
+async function submitCallback(btn) {
+  const m = btn.closest('.modal-bg');
+  const v = id => (m.querySelector(id).value || '').trim();
+  const errEl = m.querySelector('#cb-err'); errEl.textContent = '';
+  // strip empty optional props per step
+  const steps = window._cbState.steps.map(s => {
+    const o = { id: s.id, type: s.type };
+    for (const k of ['say','ask','capture','verify_against','choices','tool','args','say_result','on','default_next','next']) {
+      const val = s[k];
+      if (val === undefined || val === '' ) continue;
+      if (Array.isArray(val) && !val.length) continue;
+      if (val && typeof val === 'object' && !Array.isArray(val) && !Object.keys(val).length) continue;
+      o[k] = val;
+    }
+    return o;
+  });
+  const outProps = {}; _csv(v('#cb-out')).forEach(f => { outProps[f] = {}; });
+  if (!outProps.outcome) outProps.outcome = {};
+  const gtTool = v('#cb-gt-tool');
+  const outbound = {
+    channel: v('#cb-channel') || 'voice_outbound',
+    languages: _csv(v('#cb-langs')),
+    consent_gate: { must_confirm_identity: true, script: v('#cb-gate'), on_wrong_person: v('#cb-wrong') },
+    steps,
+    output_schema: { type: 'object', properties: outProps },
+    terminal_outcomes: _csv(v('#cb-outcomes')),
+    retry_policy: { max_attempts: +v('#cb-attempts') || 3, backoff: v('#cb-backoff'), retry_on: _csv(v('#cb-retryon')) },
+  };
+  if (gtTool) outbound.ground_truth = { tool: gtTool, arg_key: v('#cb-gt-arg') };
+  const body = {
+    id: v('#cb-id'), name: v('#cb-name') || v('#cb-id'), description: v('#cb-desc'),
+    instructions: v('#cb-instr'), tool_ids: _csv(v('#cb-tools')), corpus_id: v('#cb-corpus'),
+    default_agents: [], enabled: true, outbound,
+  };
+  if (!body.id) { errEl.textContent = 'ID is required'; return; }
+  try {
+    await fetchJson('/skills', { method: 'PUT', body: JSON.stringify(body) });
+    m.remove();
+    toast(`Saved callback agent ${body.id}`);
+    renderSkills(document.getElementById('content'));
+  } catch (e) { errEl.textContent = e.message; }  // surfaces the backend validator error
+}
+
+// ===== SARVAM DIAGNOSTICS =====
+async function renderSarvam(root) {
+  try {
+    const status = await fetch(`${BASE}/api/v1/admin/sarvam/status`).then(r => r.json());
+    const keyState = status.key_present
+      ? `<span class="tag tag-active">key present (${status.key_preview})</span>`
+      : `<span class="tag tag-rejected">NO KEY — running in MOCK</span>`;
+    root.innerHTML = `
+      <div class="card">
+        <div class="card-header"><h2>Sarvam diagnostics</h2></div>
+        <div class="card-body">
+          <table style="margin-bottom:14px">
+            <tr><th>Setting</th><th>Value</th></tr>
+            <tr><td>SARVAM_API_KEY</td><td>${keyState}</td></tr>
+            <tr><td>Base URL</td><td><code style="font-size:12px">${escapeHtml(status.base_url || '')}</code></td></tr>
+            <tr><td>Chat model</td><td><code style="font-size:12px">${escapeHtml(status.chat_model || '')}</code></td></tr>
+            <tr><td>Current mode</td><td>${status.mode === 'LIVE' ? '<span class="tag tag-active">LIVE</span>' : '<span class="tag tag-mock">MOCK (fallback)</span>'}</td></tr>
+          </table>
+          ${!status.key_present ? `
+            <div style="background:#fef3c7;border:1px solid #fbbf24;border-radius:8px;padding:14px;margin-bottom:14px;">
+              <strong>🔔 You're hearing beep sounds because Sarvam is in MOCK mode.</strong>
+              <p style="margin-top:8px;font-size:13px;line-height:1.5;color:#78350f;">
+                The two-tone chime you hear when previewing voices is the mock fallback — it's
+                a programmatically-generated sine wave, not Sarvam Bulbul output. To hear real
+                Bulbul voices:
+              </p>
+              <ol style="margin:8px 0 0 24px;font-size:13px;line-height:1.6;color:#78350f;">
+                <li>Get an API key from <a href="https://dashboard.sarvam.ai" target="_blank">dashboard.sarvam.ai</a></li>
+                <li>Edit <code>phase5b/.env</code>:  <code>SARVAM_API_KEY=sk_xxxxxxxxxxxx</code></li>
+                <li>Save the file</li>
+                <li>Stop and restart the backend (<code>Ctrl+C</code>, then <code>run.bat</code>)</li>
+                <li>Come back here and click "Run full diagnose" below</li>
+              </ol>
+            </div>` : ''}
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+            <button class="btn btn-primary" onclick="sarvamDiagnose()">▶ Run full diagnose</button>
+            <button class="btn btn-secondary" onclick="sarvamTestSingle('chat')">test Chat</button>
+            <button class="btn btn-secondary" onclick="sarvamTestSingle('stt')">test STT</button>
+            <button class="btn btn-secondary" onclick="sarvamTestSingle('tts')">test TTS</button>
+            <button class="btn btn-secondary" onclick="sarvamTestSingle('translate')">test Translate</button>
+            <button class="btn btn-secondary" onclick="sarvamTestSingle('vision')">test Vision</button>
+          </div>
+          <div id="sarvam-results"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2>About these checks</h2></div>
+        <div class="card-body" style="font-size:13px;color:#6b7280;line-height:1.6;">
+          <p>Each check makes a <strong>real API call to Sarvam</strong> (not a mock). When MOCK mode is on (no API key), tests are skipped.</p>
+          <ul style="margin:8px 0 0 24px;">
+            <li><strong>Chat</strong> — sends "reply with ok" to Sarvam-30B. Verifies auth + chat endpoint.</li>
+            <li><strong>STT</strong> — uploads a 1.5-second synthetic WAV (pure tone) to Saaras v3. Verifies endpoint reachability + response shape. Transcript will be near-empty (it's a sine wave) — that's expected.</li>
+            <li><strong>TTS</strong> — synthesizes "Hello from Sarvam diagnostics" with Bulbul v3 / shubh / en-IN. Verifies the audio bytes are real (not zero-length).</li>
+            <li><strong>Translate</strong> — translates one English line to Tamil via Sarvam-Translate v1.</li>
+            <li><strong>Vision</strong> — sends a 1×1 PNG to /vision/extract. Verifies the endpoint exists (won't extract anything useful from a 1×1 image).</li>
+          </ul>
+        </div>
+      </div>`;
+  } catch (e) { root.innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+}
+
+async function sarvamDiagnose() {
+  const out = document.getElementById('sarvam-results');
+  out.innerHTML = '<div class="empty">Running diagnostics… (10-30 seconds in LIVE mode)</div>';
+  try {
+    const r = await fetch(`${BASE}/api/v1/admin/sarvam/diagnose`).then(x => x.json());
+    renderDiagResults(out, r);
+  } catch (e) { out.innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+}
+
+async function sarvamTestSingle(kind) {
+  const out = document.getElementById('sarvam-results');
+  out.innerHTML = `<div class="empty">Testing ${kind}…</div>`;
+  try {
+    let body = {};
+    if (kind === 'tts') body = {voice: 'shubh', language: 'en-IN'};
+    const r = await fetch(`${BASE}/api/v1/admin/sarvam/test-${kind}`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body),
+    }).then(x => x.json());
+    renderDiagResults(out, {checks: [r], overall: r.status === 'pass' ? 'green' : 'red',
+                            passed: r.status==='pass'?1:0, failed: r.status==='fail'?1:0,
+                            skipped: r.status==='skipped'?1:0,
+                            hints: [], key_set: true});
+  } catch (e) { out.innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+}
+
+function renderDiagResults(out, r) {
+  const overallTag = {green:'tag-active', yellow:'tag-pending', red:'tag-rejected'}[r.overall] || 'tag-mock';
+  const summaryColor = {green:'#16a34a', yellow:'#f59e0b', red:'#dc2626'}[r.overall] || '#6b7280';
+  out.innerHTML = `
+    <div style="background:#fff;border:2px solid ${summaryColor};border-radius:10px;padding:14px;margin-bottom:14px;">
+      <strong style="font-size:15px">Overall: <span class="tag ${overallTag}">${r.overall.toUpperCase()}</span></strong>
+      <span style="margin-left:12px;color:#6b7280;font-size:13px">
+        ${r.passed} passed · ${r.failed} failed · ${r.skipped} skipped
+      </span>
+    </div>
+    ${(r.hints||[]).length ? `
+      <div style="background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;padding:12px;margin-bottom:14px;">
+        <strong style="font-size:13px;">Hints:</strong>
+        <ul style="margin:6px 0 0 20px;font-size:13px;line-height:1.5;color:#1e40af;">
+          ${r.hints.map(h => `<li>${escapeHtml(h)}</li>`).join('')}
+        </ul>
+      </div>` : ''}
+    ${(r.checks||[]).map(c => {
+      const emoji = {pass:'✓', fail:'✗', skipped:'—'}[c.status] || '?';
+      const color = {pass:'#16a34a', fail:'#dc2626', skipped:'#9ca3af'}[c.status] || '#6b7280';
+      return `
+        <div style="border-left:4px solid ${color};padding:12px;background:#fff;margin-bottom:10px;border-radius:6px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <strong style="color:${color}">${emoji} ${escapeHtml(c.name)}</strong>
+            <span style="font-size:11px;color:#6b7280;font-family:monospace;">
+              ${c.http_status?'HTTP '+c.http_status:''}
+              ${c.latency_ms?' · '+c.latency_ms+'ms':''}
+              ${c.error_kind?' · '+c.error_kind:''}
+            </span>
+          </div>
+          ${c.message ? `<div style="font-size:12px;color:#374151;margin-top:6px;line-height:1.5;white-space:pre-wrap;">${escapeHtml(c.message)}</div>` : ''}
+          ${c.response && Object.keys(c.response).length ? `
+            <div class="code" style="margin-top:6px;font-size:11px;">${escapeHtml(JSON.stringify(c.response, null, 2))}</div>` : ''}
+        </div>`;
+    }).join('')}`;
+}
+
+function escapeHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+render();
+</script>
+</body>
+</html>

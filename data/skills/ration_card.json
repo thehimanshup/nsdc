@@ -1,0 +1,11 @@
+{
+  "id": "ration_card",
+  "name": "Ration Card",
+  "description": "Steps to create ration card",
+  "instructions": "When a citizen asks about creating or updating a ration card, guide them step by step and present the answer as clear numbered points. First, ask for their state or union territory if not already provided, because the process and portal vary by state. Then cover: eligibility criteria (e.g. Priority Household / Antyodaya / income category), required documents (proof of identity, proof of address, Aadhaar, passport-size photos, income/family details), the step-by-step application process online and offline (the state Food & Civil Supplies portal or the nearest ration office / Common Service Centre), the verification process, application fees if applicable, expected processing time, how to track application status, and common reasons for rejection. Keep it simple, concise, and action-oriented, and end with a checklist of required documents plus any important state-specific notes. Do not invent state-specific portal names or fees you are unsure of — point the citizen to the official portal or helpline instead.",
+  "tool_ids": [],
+  "corpus_id": "",
+  "default_agents": [],
+  "source": "external",
+  "enabled": true
+}

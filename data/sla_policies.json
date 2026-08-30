@@ -1,0 +1,164 @@
+{
+  "water.leak": {
+    "levels": [
+      {
+        "level": 1,
+        "desk": "water.l1.ward",
+        "hours": 24
+      },
+      {
+        "level": 2,
+        "desk": "water.l2.zone",
+        "hours": 72
+      },
+      {
+        "level": 3,
+        "desk": "water.l3.city",
+        "hours": 168
+      },
+      {
+        "level": 4,
+        "desk": "water.l4.board",
+        "hours": 168
+      }
+    ]
+  },
+  "water.no_supply": {
+    "levels": [
+      {
+        "level": 1,
+        "desk": "water.l1.ward",
+        "hours": 12
+      },
+      {
+        "level": 2,
+        "desk": "water.l2.zone",
+        "hours": 48
+      },
+      {
+        "level": 3,
+        "desk": "water.l3.city",
+        "hours": 120
+      }
+    ]
+  },
+  "water.sewer_blockage": {
+    "levels": [
+      {
+        "level": 1,
+        "desk": "water.l1.ward",
+        "hours": 12
+      },
+      {
+        "level": 2,
+        "desk": "water.l2.zone",
+        "hours": 48
+      },
+      {
+        "level": 3,
+        "desk": "water.l3.city",
+        "hours": 120
+      }
+    ]
+  },
+  "grievance.general": {
+    "levels": [
+      {
+        "level": 1,
+        "desk": "cmo.l1.field",
+        "hours": 168
+      },
+      {
+        "level": 2,
+        "desk": "cmo.l2.taluk",
+        "hours": 360
+      },
+      {
+        "level": 3,
+        "desk": "cmo.l3.district",
+        "hours": 168
+      },
+      {
+        "level": 4,
+        "desk": "cmo.l4.secy",
+        "hours": 168
+      }
+    ]
+  },
+  "revenue.patta_correction": {
+    "levels": [
+      {
+        "level": 1,
+        "desk": "revenue.l1.vao",
+        "hours": 168
+      },
+      {
+        "level": 2,
+        "desk": "revenue.l2.taluk",
+        "hours": 240
+      },
+      {
+        "level": 3,
+        "desk": "revenue.l3.rdo",
+        "hours": 168
+      },
+      {
+        "level": 4,
+        "desk": "revenue.l4.collr",
+        "hours": 168
+      }
+    ]
+  },
+  "ration.missing_allocation": {
+    "levels": [
+      {
+        "level": 1,
+        "desk": "ration.l1.fps",
+        "hours": 72
+      },
+      {
+        "level": 2,
+        "desk": "ration.l2.taluk",
+        "hours": 168
+      },
+      {
+        "level": 3,
+        "desk": "ration.l3.dso",
+        "hours": 168
+      }
+    ]
+  },
+  "pwd.road_defect": {
+    "levels": [
+      {
+        "level": 1,
+        "desk": "pwd.l1.ae",
+        "hours": 120
+      },
+      {
+        "level": 2,
+        "desk": "pwd.l2.ee",
+        "hours": 240
+      },
+      {
+        "level": 3,
+        "desk": "pwd.l3.ce",
+        "hours": 240
+      }
+    ]
+  },
+  "scheme.application": {
+    "levels": [
+      {
+        "level": 1,
+        "desk": "social.l1.vao",
+        "hours": 240
+      },
+      {
+        "level": 2,
+        "desk": "social.l2.dswo",
+        "hours": 360
+      }
+    ]
+  }
+}

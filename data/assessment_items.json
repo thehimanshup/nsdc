@@ -1,0 +1,38 @@
+[
+ {
+  "item_id": "itm_ed4e57e94e",
+  "text": "List the key steps involved in: Monitor and record vital signs.",
+  "qp_code": "HSS/Q5101",
+  "nos_code": "HSS/N5102",
+  "bloom_level": 1,
+  "bloom_label": "Remember",
+  "review_status": "pending",
+  "compose_mode": "template",
+  "created_by": "iyer",
+  "created_at": "2026-07-19T07:59:37+00:00"
+ },
+ {
+  "item_id": "itm_bde93889cf",
+  "text": "Explain why the following practice matters in daily work: Monitor and record vital signs.",
+  "qp_code": "HSS/Q5101",
+  "nos_code": "HSS/N5102",
+  "bloom_level": 2,
+  "bloom_label": "Understand",
+  "review_status": "pending",
+  "compose_mode": "template",
+  "created_by": "iyer",
+  "created_at": "2026-07-19T07:59:37+00:00"
+ },
+ {
+  "item_id": "itm_4af034ab08",
+  "text": "Given a typical ward scenario, demonstrate how you would carry out: Monitor and record vital signs.",
+  "qp_code": "HSS/Q5101",
+  "nos_code": "HSS/N5102",
+  "bloom_level": 3,
+  "bloom_label": "Apply",
+  "review_status": "pending",
+  "compose_mode": "template",
+  "created_by": "iyer",
+  "created_at": "2026-07-19T07:59:37+00:00"
+ }
+]

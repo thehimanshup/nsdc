@@ -1,0 +1,19 @@
+{
+ "manifest_id": "man-b30ca1faa4c9",
+ "embedding_model": "bm25-only",
+ "embedding_dim": 0,
+ "chunking_config": {
+  "strategy": "section_aware",
+  "target_tokens": 400,
+  "overlap_tokens": 60,
+  "keep_tables_intact": true
+ },
+ "chunking_config_hash": "sha256:ab1829e40a3d9a0379c2b1432a86e75cd6712e88b2dd1351313cf2bda5df5ee2",
+ "corpus_snapshot_hash": "sha256:cd9fba9bc22f65d225efb63f71f50ee0b4a67a2e35baf7fc23b3be46fb4fa37b",
+ "doc_count": 10,
+ "chunk_count": 40,
+ "kg_version": "",
+ "kg_content_hash": "",
+ "built_at": "2026-07-19T07:57:04+00:00",
+ "schema_version": "0.1"
+}

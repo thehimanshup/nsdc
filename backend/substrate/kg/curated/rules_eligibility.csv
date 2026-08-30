@@ -1,0 +1,4 @@
+id,scheme_id,criterion,op,value,label
+rule-pmkvy-age-min,pmkvy4,age,>=,15,Age 15 or above
+rule-pmkvy-age-max,pmkvy4,age,<=,45,Age 45 or below
+rule-pmkvy-aadhaar,pmkvy4,has_aadhaar,==,true,Aadhaar available

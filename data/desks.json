@@ -1,0 +1,206 @@
+{
+  "water.l1.ward": {
+    "department_id": "water",
+    "level": 1,
+    "officer_label": "Ward Engineer (AE)",
+    "jurisdiction": "ward"
+  },
+  "water.l2.zone": {
+    "department_id": "water",
+    "level": 2,
+    "officer_label": "Zonal Executive Engineer (EE)",
+    "jurisdiction": "zone"
+  },
+  "water.l3.city": {
+    "department_id": "water",
+    "level": 3,
+    "officer_label": "Superintending Engineer (SE)",
+    "jurisdiction": "city"
+  },
+  "water.l4.board": {
+    "department_id": "water",
+    "level": 4,
+    "officer_label": "Managing Director, Water Board",
+    "jurisdiction": "state"
+  },
+  "cmo.l1.field": {
+    "department_id": "cmo",
+    "level": 1,
+    "officer_label": "Field Officer / Patwari",
+    "jurisdiction": "block"
+  },
+  "cmo.l2.taluk": {
+    "department_id": "cmo",
+    "level": 2,
+    "officer_label": "Revenue Inspector / Tahsildar",
+    "jurisdiction": "taluk"
+  },
+  "cmo.l3.district": {
+    "department_id": "cmo",
+    "level": 3,
+    "officer_label": "District Collector",
+    "jurisdiction": "district"
+  },
+  "cmo.l4.secy": {
+    "department_id": "cmo",
+    "level": 4,
+    "officer_label": "Principal Secretary",
+    "jurisdiction": "state"
+  },
+  "revenue.l1.vao": {
+    "department_id": "revenue",
+    "level": 1,
+    "officer_label": "Village Admin Officer (VAO)",
+    "jurisdiction": "village"
+  },
+  "revenue.l2.taluk": {
+    "department_id": "revenue",
+    "level": 2,
+    "officer_label": "Tahsildar",
+    "jurisdiction": "taluk"
+  },
+  "revenue.l3.rdo": {
+    "department_id": "revenue",
+    "level": 3,
+    "officer_label": "Revenue Divisional Officer",
+    "jurisdiction": "division"
+  },
+  "revenue.l4.collr": {
+    "department_id": "revenue",
+    "level": 4,
+    "officer_label": "District Collector",
+    "jurisdiction": "district"
+  },
+  "ration.l1.fps": {
+    "department_id": "ration",
+    "level": 1,
+    "officer_label": "Fair Price Shop Inspector",
+    "jurisdiction": "shop"
+  },
+  "ration.l2.taluk": {
+    "department_id": "ration",
+    "level": 2,
+    "officer_label": "Taluk Supply Officer",
+    "jurisdiction": "taluk"
+  },
+  "ration.l3.dso": {
+    "department_id": "ration",
+    "level": 3,
+    "officer_label": "District Supply Officer",
+    "jurisdiction": "district"
+  },
+  "pwd.l1.ae": {
+    "department_id": "pwd",
+    "level": 1,
+    "officer_label": "Assistant Engineer (PWD)",
+    "jurisdiction": "ward"
+  },
+  "pwd.l2.ee": {
+    "department_id": "pwd",
+    "level": 2,
+    "officer_label": "Executive Engineer (PWD)",
+    "jurisdiction": "division"
+  },
+  "pwd.l3.ce": {
+    "department_id": "pwd",
+    "level": 3,
+    "officer_label": "Chief Engineer (PWD)",
+    "jurisdiction": "state"
+  },
+  "housing.l1.desk": {
+    "department_id": "housing",
+    "level": 1,
+    "officer_label": "Housing Scheme Clerk",
+    "jurisdiction": "block"
+  },
+  "housing.l2.bdo": {
+    "department_id": "housing",
+    "level": 2,
+    "officer_label": "Block Development Officer",
+    "jurisdiction": "block"
+  },
+  "housing.l3.ceo": {
+    "department_id": "housing",
+    "level": 3,
+    "officer_label": "CEO, Housing Board",
+    "jurisdiction": "state"
+  },
+  "wcd.l1.awc": {
+    "department_id": "wcd",
+    "level": 1,
+    "officer_label": "Anganwadi Supervisor",
+    "jurisdiction": "block"
+  },
+  "wcd.l2.cdpo": {
+    "department_id": "wcd",
+    "level": 2,
+    "officer_label": "Child Dev Project Officer",
+    "jurisdiction": "project"
+  },
+  "wcd.l3.dpo": {
+    "department_id": "wcd",
+    "level": 3,
+    "officer_label": "District Programme Officer",
+    "jurisdiction": "district"
+  },
+  "social.l1.vao": {
+    "department_id": "social",
+    "level": 1,
+    "officer_label": "Welfare Assistant",
+    "jurisdiction": "village"
+  },
+  "social.l2.dswo": {
+    "department_id": "social",
+    "level": 2,
+    "officer_label": "District Social Welfare Officer",
+    "jurisdiction": "district"
+  },
+  "social.l3.dir": {
+    "department_id": "social",
+    "level": 3,
+    "officer_label": "Director, Social Welfare",
+    "jurisdiction": "state"
+  },
+  "health.l1.phc": {
+    "department_id": "health",
+    "level": 1,
+    "officer_label": "PHC Medical Officer",
+    "jurisdiction": "phc"
+  },
+  "health.l2.dmo": {
+    "department_id": "health",
+    "level": 2,
+    "officer_label": "District Medical Officer",
+    "jurisdiction": "district"
+  },
+  "health.l3.dir": {
+    "department_id": "health",
+    "level": 3,
+    "officer_label": "Director, Health Services",
+    "jurisdiction": "state"
+  },
+  "agriculture.l1.ado": {
+    "department_id": "agriculture",
+    "level": 1,
+    "officer_label": "Agriculture Officer (ADO)",
+    "jurisdiction": "block"
+  },
+  "agriculture.l2.jd": {
+    "department_id": "agriculture",
+    "level": 2,
+    "officer_label": "Joint Director Agriculture",
+    "jurisdiction": "district"
+  },
+  "transport.l1.rto": {
+    "department_id": "transport",
+    "level": 1,
+    "officer_label": "RTO Inspector",
+    "jurisdiction": "rto"
+  },
+  "transport.l2.dto": {
+    "department_id": "transport",
+    "level": 2,
+    "officer_label": "Regional Transport Officer",
+    "jurisdiction": "region"
+  }
+}

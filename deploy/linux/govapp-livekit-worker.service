@@ -1,0 +1,20 @@
+# /etc/systemd/system/govapp-livekit-worker.service
+# Streaming voice worker. Separate process — connects OUTBOUND to LIVEKIT_URL.
+# Only enable when live voice is in scope; needs requirements-voice.txt installed.
+[Unit]
+Description=Government Services LiveKit Voice Worker
+After=network-online.target govapp.service
+Wants=network-online.target
+
+[Service]
+User=svcgov
+Group=svcgov
+WorkingDirectory=/opt/govapp/phase6e
+EnvironmentFile=/opt/govapp/phase6e/.env
+ExecStart=/opt/govapp/phase6e/.venv/bin/python -m backend.livekit_agent_worker start
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

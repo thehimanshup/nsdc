@@ -1,0 +1,61 @@
+# Sovereign AI Substrate PoC — supporting services (ST-301, ST-401)
+# Usage:  docker compose -f docker-compose.substrate.yml up -d
+#
+# The FastAPI app itself runs on the host (run.sh / run.bat) during
+# development; these are its backing stores. All services pin versions
+# for reproducibility and bind only to localhost.
+
+services:
+  neo4j:
+    image: neo4j:5.26-community
+    container_name: nsdc-neo4j
+    ports:
+      - "127.0.0.1:7474:7474"   # browser
+      - "127.0.0.1:7687:7687"   # bolt
+    environment:
+      - NEO4J_AUTH=neo4j/substrate-dev-pass
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+    volumes:
+      - neo4j_data:/data
+      - ./backend/substrate/kg:/import/kg:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    container_name: nsdc-qdrant
+    ports:
+      - "127.0.0.1:6333:6333"   # REST
+      - "127.0.0.1:6334:6334"   # gRPC
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: nsdc-postgres
+    ports:
+      - "127.0.0.1:5433:5432"
+    environment:
+      - POSTGRES_USER=substrate
+      - POSTGRES_PASSWORD=substrate-dev-pass
+      - POSTGRES_DB=substrate
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.60
+    container_name: nsdc-jaeger
+    ports:
+      - "127.0.0.1:16686:16686"  # UI
+      - "127.0.0.1:4318:4318"    # OTLP http
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+
+volumes:
+  neo4j_data:
+  qdrant_data:
+  pg_data:

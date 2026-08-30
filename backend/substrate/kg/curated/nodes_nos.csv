@@ -1,0 +1,9 @@
+nos_code,title,qp_code,source_doc_id
+HSS/N5101,Assist patients with daily living activities,HSS/Q5101,hssc-qp-5101
+HSS/N5102,Monitor and record vital signs,HSS/Q5101,hssc-qp-5101
+HSS/N5104,Maintain patient hygiene and infection control,HSS/Q5101,hssc-qp-5101
+HSS/N5110,Handle biomedical waste per protocol,HSS/Q5101,hssc-qp-5101
+HSS/N5121,Provide home-based personal care,HSS/Q5102,hssc-qp-5102
+HSS/N5122,Support mobility and comfort of home patients,HSS/Q5102,hssc-qp-5102
+HSS/N0301,Collect blood specimens safely,HSS/Q0301,hssc-qp-0301
+HSS/N0302,Label, store and transport specimens,HSS/Q0301,hssc-qp-0301

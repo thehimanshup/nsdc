@@ -1,0 +1,25 @@
+# /etc/systemd/system/govapp.service
+# Main API + browser UI process (single worker — see DEPLOYMENT.md §Scaling).
+[Unit]
+Description=Government Services Multi-Agent Backend (API + UI)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=svcgov
+Group=svcgov
+WorkingDirectory=/opt/govapp/phase6e
+EnvironmentFile=/opt/govapp/phase6e/.env
+ExecStart=/opt/govapp/phase6e/.venv/bin/uvicorn backend.main:app \
+    --host 127.0.0.1 --port 8000 --workers 1 --no-access-log
+Restart=always
+RestartSec=3
+
+# --- hardening ---
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+ReadWritePaths=/opt/govapp/phase6e/data
+
+[Install]
+WantedBy=multi-user.target

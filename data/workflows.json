@@ -1,0 +1,79 @@
+{
+  "flood_relief": {
+    "id": "flood_relief",
+    "title": "Flood-damage relief",
+    "shape": "cross_agent",
+    "owner_department": "cmo",
+    "kind": "grievance",
+    "description": "Revenue verifies Patta → Agriculture computes crop-loss → CMO submits to relief fund.",
+    "triggers": [
+      "flood|inundat|submerg",
+      "बाढ़|बारिश\\s*से\\s*नुकसान",
+      "வெள்ள",
+      "crop.{0,15}damag|farm.{0,15}damag",
+      "நிலம்.{0,12}சேத|பயிர்.{0,12}சேத",
+      "फसल.{0,12}नुकसान|खेत.{0,12}नुकसान|फसल.{0,12}नष्ट",
+      "disaster|relief.{0,12}fund|cyclone|drought|cyclonic|दुर्भीक्ष|सूखा|चक्रवात"
+    ],
+    "creates_record": {"category": "disaster_relief", "sla_policy_id": "grievance.general", "priority": "high"},
+    "steps": [
+      {"state": "DOCS_FETCHED", "agent_id": "revenue", "purpose": "Verify your Patta and assess damage",
+       "tool_id": "digilocker.fetch_patta", "consent_scope": "PATTA_FETCH",
+       "inject_context": "STEP 1 of FLOOD-RELIEF coordinator. Confirm the citizen's land details by fetching their Patta from DigiLocker. Ask for survey number if not provided. Once Patta is fetched, summarise extent and land type, and tell the citizen we'll now compute crop-loss compensation."},
+      {"state": "APPLICATIONS_FILED", "agent_id": "agriculture", "purpose": "Compute crop-loss compensation",
+       "inject_context": "STEP 2 of FLOOD-RELIEF coordinator. The previous step (Revenue) fetched the citizen's Patta. Now compute estimated crop-loss compensation under PMFBY norms (over 33% loss qualifies) given the extent of land reported. Provide an indicative amount and explain the application steps. Mention we'll forward to CMO for final relief-fund submission."},
+      {"state": "AWAITING_REVIEW", "agent_id": "cmo", "purpose": "Submit to CM's emergency relief fund",
+       "tool_id": "cmo.create_grievance",
+       "inject_context": "STEP 3 (final) of FLOOD-RELIEF coordinator. Revenue and Agriculture have done their parts. As the Chief Minister's Cell, register a flood-relief grievance using the cmo.create_grievance tool, summarise everything that was filed, and give the citizen the grievance ID + 30-day response timeline. Reassure them in a warm tone."}
+    ]
+  },
+
+  "water_leak_complaint": {
+    "id": "water_leak_complaint",
+    "title": "Water leak / no-supply complaint",
+    "shape": "single_agent",
+    "owner_department": "water",
+    "kind": "grievance",
+    "description": "Capture location → register a trackable complaint → give tracking id + SLA promise → auto-escalate L1→L4 if unresolved.",
+    "triggers": ["leak", "no water", "no supply", "sewage", "sewer", "low pressure", "லீக்", "தண்ணீர் இல்லை", "पानी नहीं", "लीक"],
+    "creates_record": {"category": "leak", "sla_policy_id": "water.leak", "priority": "normal"},
+    "collect": ["location"],
+    "tool_id": "records.create"
+  },
+  "ration_missing_allocation": {
+    "id": "ration_missing_allocation",
+    "title": "Missing ration allocation complaint",
+    "shape": "single_agent",
+    "owner_department": "ration",
+    "kind": "grievance",
+    "description": "Citizen did not receive monthly allocation → register complaint against the fair-price shop → track.",
+    "triggers": ["didn't get ration", "did not get ration", "missing allocation", "no rice", "shop refused", "राशन नहीं मिला", "ரேஷன் கிடைக்கவில்லை"],
+    "creates_record": {"category": "missing_allocation", "sla_policy_id": "ration.missing_allocation", "priority": "high"},
+    "collect": ["card_no", "shop_no"],
+    "tool_id": "records.create"
+  },
+  "patta_correction": {
+    "id": "patta_correction",
+    "title": "Patta / land-record correction",
+    "shape": "single_agent",
+    "owner_department": "revenue",
+    "kind": "grievance",
+    "description": "Fetch current patta → file a correction request → track at VAO → escalate to Tahsildar/RDO.",
+    "triggers": ["patta correction", "wrong name in patta", "land record correction", "chitta correction", "பட்டா திருத்தம்", "पट्टा सुधार"],
+    "creates_record": {"category": "patta_correction", "sla_policy_id": "revenue.patta_correction", "priority": "normal"},
+    "collect": ["survey_no", "correction_detail"],
+    "tool_id": "records.create"
+  },
+  "road_defect": {
+    "id": "road_defect",
+    "title": "Road / public-works defect",
+    "shape": "single_agent",
+    "owner_department": "pwd",
+    "kind": "grievance",
+    "description": "Report a pothole / abandoned road work → links to the project if known → track at PWD.",
+    "triggers": ["pothole", "road broken", "road work abandoned", "bad road", "गड्ढा", "சாலை சேதம்"],
+    "creates_record": {"category": "road_defect", "sla_policy_id": "pwd.road_defect", "priority": "normal"},
+    "collect": ["location"],
+    "tool_id": "records.create"
+  }
+}

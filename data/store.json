@@ -1,0 +1,201 @@
+{
+  "citizens": {
+    "ctz_f3644313e465": {
+      "msisdn": "00001",
+      "language": "en-IN",
+      "createdAt": "2026-07-19T07:11:14.312940",
+      "state_code": "DL"
+    },
+    "ctz_6a02d4f78dfd": {
+      "msisdn": "8888888888",
+      "language": "en-IN",
+      "createdAt": "2026-07-19T08:53:04.388107"
+    }
+  },
+  "msisdn_to_id": {
+    "00001": "ctz_f3644313e465",
+    "8888888888": "ctz_6a02d4f78dfd"
+  },
+  "conv_meta": {
+    "ctz_f3644313e465:mentor": {
+      "citizenId": "ctz_f3644313e465",
+      "agentId": "mentor",
+      "createdAt": "2026-07-19T07:11:14.512444",
+      "lastMsgAt": "2026-07-19T07:11:16.374003"
+    },
+    "ctz_6a02d4f78dfd:mentor": {
+      "citizenId": "ctz_6a02d4f78dfd",
+      "agentId": "mentor",
+      "createdAt": "2026-07-19T08:53:06.261831",
+      "lastMsgAt": "2026-07-19T09:04:39.028044"
+    }
+  },
+  "conversations": {
+    "ctz_f3644313e465:mentor": [
+      {
+        "id": "msg_ddde5f2124f3",
+        "convId": "ctz_f3644313e465:mentor",
+        "role": "user",
+        "type": "text",
+        "text": "I passed class 10 and want a healthcare job",
+        "lang": "en-IN",
+        "mediaUrl": null,
+        "audioUrl": null,
+        "durationSec": null,
+        "timestamp": "2026-07-19T07:11:14.512485",
+        "clientMsgId": null,
+        "extra": {},
+        "channel": "simulator",
+        "providerMessageId": null,
+        "providerStatus": null
+      },
+      {
+        "id": "msg_5bfc42a3029a",
+        "convId": "ctz_f3644313e465:mentor",
+        "role": "agent",
+        "type": "text",
+        "text": "Based on the General Duty Assistant QP (HSS/Q5101, NSQF level 4), you are eligible after class 10. The course runs ~3 months at empanelled centres. [citation: hssc-qp-5101 §4]",
+        "lang": "en-IN",
+        "mediaUrl": null,
+        "audioUrl": null,
+        "durationSec": null,
+        "timestamp": "2026-07-19T07:11:16.374003",
+        "clientMsgId": null,
+        "extra": {
+          "detectedLanguage": "en-IN",
+          "stateCode": "DL",
+          "stateName": "Delhi",
+          "personaName": "Skill Mentor"
+        },
+        "channel": "system",
+        "providerMessageId": null,
+        "providerStatus": null
+      }
+    ],
+    "ctz_6a02d4f78dfd:mentor": [
+      {
+        "id": "msg_c0ec664682e5",
+        "convId": "ctz_6a02d4f78dfd:mentor",
+        "role": "user",
+        "type": "text",
+        "text": "hi",
+        "lang": "en-IN",
+        "mediaUrl": null,
+        "audioUrl": null,
+        "durationSec": null,
+        "timestamp": "2026-07-19T08:53:08.902267",
+        "clientMsgId": "c_1784451188768_ro0k",
+        "extra": {},
+        "channel": "simulator",
+        "providerMessageId": null,
+        "providerStatus": null
+      },
+      {
+        "id": "msg_e13c44c21dc0",
+        "convId": "ctz_6a02d4f78dfd:mentor",
+        "role": "agent",
+        "type": "text",
+        "text": "🎓 Namaste! I'm your Skill Mentor. Tell me your education level and the kind of work you're interested in, and I'll find matching courses and schemes.",
+        "lang": "en-IN",
+        "mediaUrl": null,
+        "audioUrl": null,
+        "durationSec": null,
+        "timestamp": "2026-07-19T08:53:10.746070",
+        "clientMsgId": null,
+        "extra": {
+          "detectedLanguage": "en-IN",
+          "stateCode": null,
+          "stateName": null,
+          "personaName": "Skill Mentor"
+        },
+        "channel": "system",
+        "providerMessageId": null,
+        "providerStatus": null
+      },
+      {
+        "id": "msg_6947a87bd1b7",
+        "convId": "ctz_6a02d4f78dfd:mentor",
+        "role": "user",
+        "type": "text",
+        "text": "I need job",
+        "lang": "en-IN",
+        "mediaUrl": null,
+        "audioUrl": null,
+        "durationSec": null,
+        "timestamp": "2026-07-19T09:04:30.148858",
+        "clientMsgId": "c_1784451870139_i886",
+        "extra": {},
+        "channel": "simulator",
+        "providerMessageId": null,
+        "providerStatus": null
+      },
+      {
+        "id": "msg_640becd69c95",
+        "convId": "ctz_6a02d4f78dfd:mentor",
+        "role": "agent",
+        "type": "text",
+        "text": "I can help you find the right job. To suggest suitable courses, could you tell me what kind of work you're interested in?",
+        "lang": "en-IN",
+        "mediaUrl": null,
+        "audioUrl": null,
+        "durationSec": null,
+        "timestamp": "2026-07-19T09:04:39.028044",
+        "clientMsgId": null,
+        "extra": {
+          "citations": [
+            {
+              "chunkId": "nsqf-descriptors#s4-c1",
+              "title": "NSQF Level Descriptors — Selected Level Descriptors",
+              "source": "NCVET (nsqf-descriptors vseed-0.1)",
+              "sourceUrl": "https://ncvet.gov.in/",
+              "lastVerified": "2026-07-19",
+              "verifiedBy": "substrate-ingest",
+              "agentId": "skilling_core",
+              "language": "en-IN"
+            },
+            {
+              "chunkId": "hssc-qp-5101#s5-c1",
+              "title": "QP General Duty Assistant (HSS/Q5101) — Training Duration",
+              "source": "HSSC / NQR (hssc-qp-5101 vseed-0.1)",
+              "sourceUrl": "https://nqr.gov.in/",
+              "lastVerified": "2026-07-19",
+              "verifiedBy": "substrate-ingest",
+              "agentId": "skilling_core",
+              "language": "en-IN"
+            },
+            {
+              "chunkId": "nsqf-descriptors#s3-c1",
+              "title": "NSQF Level Descriptors — Qualification Pack",
+              "source": "NCVET (nsqf-descriptors vseed-0.1)",
+              "sourceUrl": "https://ncvet.gov.in/",
+              "lastVerified": "2026-07-19",
+              "verifiedBy": "substrate-ingest",
+              "agentId": "skilling_core",
+              "language": "en-IN"
+            },
+            {
+              "chunkId": "faq-skilling#s2-c1",
+              "title": "Skilling FAQ compilation (from public helpdesk pages) — What is a Qualification Pack?",
+              "source": "NSDC (faq-skilling vseed-0.1)",
+              "sourceUrl": "https://nsdcindia.org/",
+              "lastVerified": "2026-07-19",
+              "verifiedBy": "substrate-ingest",
+              "agentId": "skilling_core",
+              "language": "en-IN"
+            }
+          ],
+          "ragTopScore": 2.0667,
+          "ragLowConfidence": false,
+          "ragCrossCorpus": [],
+          "detectedLanguage": "en-IN",
+          "stateCode": null,
+          "stateName": null,
+          "personaName": "Skill Mentor"
+        },
+        "channel": "system",
+        "providerMessageId": null,
+        "providerStatus": null
+      }
+    ]
+  }
+}

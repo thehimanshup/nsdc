@@ -1,0 +1,13 @@
+doc_id,title,source_org,source_url,doc_type,sector,language,version,license,last_updated,sensitivity,status,owner
+hssc-qp-5101,QP General Duty Assistant (HSS/Q5101),HSSC / NQR,https://nqr.gov.in/,qp,healthcare,en,seed-0.1,public,2026-07-19,public,SEED,DATA
+hssc-qp-5102,QP Home Health Aide,HSSC / NQR,https://nqr.gov.in/,qp,healthcare,en,seed-0.1,public,2026-07-19,public,SEED,DATA
+hssc-qp-0301,QP Phlebotomy Technician,HSSC / NQR,https://nqr.gov.in/,qp,healthcare,en,seed-0.1,public,2026-07-19,public,SEED,DATA
+pmkvy4-guidelines,PMKVY 4.0 Scheme Guidelines,MSDE,https://www.pmkvyofficial.org/,scheme,cross,en,seed-0.1,public,2026-07-19,public,SEED,DATA
+nsqf-descriptors,NSQF Level Descriptors,NCVET,https://ncvet.gov.in/,policy,cross,en,seed-0.1,public,2026-07-19,public,SEED,DATA
+dgt-trade-list,DGT Trade Taxonomy (CTS trades),DGT,https://dgt.gov.in/,taxonomy,cross,en,VERIFY,public,VERIFY,public,TO_DOWNLOAD,DATA
+naps-guidelines,NAPS Scheme Guidelines,MSDE,https://www.apprenticeshipindia.gov.in/,scheme,cross,en,VERIFY,public,VERIFY,public,TO_DOWNLOAD,DATA
+course-gda-01,Course page: GDA Certificate Course,SIDH catalogue,https://www.skillindiadigital.gov.in/,course,healthcare,en,seed-0.1,public,2026-07-19,public,SEED,DATA
+course-hha-01,Course page: Home Health Aide Programme,SIDH catalogue,https://www.skillindiadigital.gov.in/,course,healthcare,en,seed-0.1,public,2026-07-19,public,SEED,DATA
+centre-registry,Sample training-centre metadata (SYNTHETIC),internal,,course,healthcare,en,0.1,synthetic,2026-07-19,public,SEED,DATA
+faq-skilling,Skilling FAQ compilation (from public helpdesk pages),NSDC,https://nsdcindia.org/,faq,cross,en,seed-0.1,public,2026-07-19,public,SEED,DATA
+rt-injection-plant,RED-TEAM: injection plant (do not remove),internal red-team,,faq,healthcare,en,rt-0.1,synthetic,2026-07-19,public,SEED,QA

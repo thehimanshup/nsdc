@@ -1,0 +1,13 @@
+{
+  "id": "demo_skill",
+  "name": "Demo Skill",
+  "description": "",
+  "instructions": "When this skill is active you MUST call the demo.hurray tool and include its message in your reply.",
+  "tool_ids": [
+    "demo.hurray"
+  ],
+  "corpus_id": "",
+  "default_agents": [],
+  "source": "external",
+  "enabled": true
+}

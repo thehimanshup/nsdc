@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  INTERNAL (ZTNA-facing) IIS site.
+  Reverse-proxies the WHOLE app to uvicorn on 127.0.0.1:8000.
+  Deploy: rename to `web.config` and place in the GovApp-Internal site root
+          (e.g. C:\govapp\phase6e\iis-internal\web.config).
+  Requires: IIS WebSocket feature + URL Rewrite + ARR (proxy enabled).
+-->
+<configuration>
+  <system.webServer>
+    <webSocket enabled="true" />
+    <rewrite>
+      <rules>
+        <rule name="ReverseProxyToUvicorn" stopProcessing="true">
+          <match url="(.*)" />
+          <action type="Rewrite" url="http://127.0.0.1:8000/{R:1}" />
+        </rule>
+      </rules>
+    </rewrite>
+    <security>
+      <requestFiltering>
+        <!-- 25 MB: document + audio uploads -->
+        <requestLimits maxAllowedContentLength="26214400" />
+      </requestFiltering>
+    </security>
+  </system.webServer>
+</configuration>

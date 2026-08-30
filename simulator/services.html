@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Government Services — Citizen Portal</title>
+<style>
+  :root{ --green:#075E54; --green2:#128C7E; --accent:#25D366; --bg:#0d1117; --card:#fff; --ink:#1a2027; --muted:#6b7785; --line:#e6e9ee; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:var(--ink);}
+  .wrap{max-width:760px;margin:0 auto;padding:18px 14px 60px;}
+  header.top{display:flex;align-items:center;gap:12px;color:#fff;padding:10px 4px 18px;}
+  header.top .logo{width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--green2));display:flex;align-items:center;justify-content:center;font-size:24px;}
+  header.top h1{font-size:18px;margin:0;font-weight:700;}
+  header.top p{margin:2px 0 0;font-size:12px;color:#9fb0c0;}
+  .idbar{background:#161b22;border:1px solid #232a33;border-radius:14px;padding:12px;display:flex;gap:8px;align-items:center;margin-bottom:14px;}
+  .idbar input{flex:1;background:#0d1117;border:1px solid #2a323c;color:#e6edf3;border-radius:10px;padding:10px 12px;font-size:14px;}
+  .idbar button{background:var(--accent);border:none;color:#053b2a;font-weight:700;padding:10px 16px;border-radius:10px;cursor:pointer;}
+  .idbar .who{font-size:12px;color:#9fb0c0;white-space:nowrap;}
+  .tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+  .tab{flex:1;min-width:120px;background:#161b22;border:1px solid #232a33;color:#c2ccd6;padding:11px 8px;border-radius:12px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;}
+  .tab.active{background:var(--green);color:#fff;border-color:var(--green);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 6px 18px rgba(0,0,0,.25);}
+  .card h3{margin:0 0 4px;font-size:15px;}
+  .row{display:flex;justify-content:space-between;gap:10px;align-items:center;}
+  .muted{color:var(--muted);font-size:12px;}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;}
+  .s-ASSIGNED,.s-IN_PROGRESS,.s-SUBMITTED,.s-UNDER_VERIFICATION{background:#e7f0ff;color:#1d4ed8;}
+  .s-ESCALATED{background:#fff1e6;color:#c2410c;}
+  .s-RESOLVED,.s-SANCTIONED{background:#e7f9ee;color:#067647;}
+  .s-CLOSED,.s-DISBURSED{background:#eef0f2;color:#475569;}
+  .s-REJECTED,.s-WITHDRAWN{background:#fde8e8;color:#b91c1c;}
+  .lv{font-size:11px;color:#fff;background:#64748b;border-radius:6px;padding:2px 7px;}
+  .timeline{margin-top:10px;border-left:2px solid var(--line);padding-left:14px;}
+  .tl{position:relative;margin-bottom:10px;}
+  .tl::before{content:'';position:absolute;left:-21px;top:3px;width:10px;height:10px;border-radius:50%;background:var(--green2);}
+  .tl .when{font-size:11px;color:var(--muted);}
+  .tl .what{font-size:13px;font-weight:600;}
+  .tl .note{font-size:12px;color:#445;}
+  .field{display:flex;gap:8px;margin-bottom:10px;}
+  .field input,.field select{flex:1;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:14px;}
+  .btn{background:var(--green);color:#fff;border:none;border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer;font-size:14px;}
+  .btn.alt{background:#eef2f6;color:#243;}
+  .bar{height:8px;background:#eef0f2;border-radius:6px;overflow:hidden;margin:6px 0;}
+  .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--green2),var(--accent));}
+  .ms{font-size:12px;margin:3px 0;}
+  .ms.done{color:#067647;} .ms.todo{color:#94a3b8;}
+  .stars{font-size:22px;cursor:pointer;color:#f59e0b;}
+  .empty{color:#9fb0c0;text-align:center;padding:30px;font-size:14px;}
+  .scheme-fam{display:inline-block;font-size:11px;background:#eef2ff;color:#3730a3;border-radius:20px;padding:3px 9px;margin-right:6px;}
+  a.link{color:var(--green2);font-size:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo">🏛️</div>
+    <div><h1>Government Services Portal</h1><p>Register · Track · Schemes · Projects</p></div>
+  </header>
+
+  <div class="idbar">
+    <input id="msisdn" placeholder="Enter your 10-digit mobile" value="9876501234"/>
+    <button onclick="signIn()">Continue</button>
+    <span class="who" id="who"></span>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-t="records" onclick="tab('records')">📨 My Records</div>
+    <div class="tab" data-t="track" onclick="tab('track')">🔎 Track</div>
+    <div class="tab" data-t="schemes" onclick="tab('schemes')">🤝 Schemes</div>
+    <div class="tab" data-t="projects" onclick="tab('projects')">🚧 Projects</div>
+  </div>
+
+  <div class="panel active" id="p-records"><div id="records-list" class="empty">Enter your mobile and press Continue.</div></div>
+
+  <div class="panel" id="p-track">
+    <div class="card">
+      <h3>Track by reference number</h3>
+      <p class="muted">No login needed — like UP Jansunwai / National Consumer Helpline.</p>
+      <div class="field"><input id="trk-id" placeholder="e.g. GRV-TN-2026-000001"/><input id="trk-mob" placeholder="mobile (optional)"/></div>
+      <button class="btn" onclick="trackRef()">Track</button>
+    </div>
+    <div id="track-result"></div>
+  </div>
+
+  <div class="panel" id="p-schemes">
+    <div class="card">
+      <h3>Find a welfare scheme</h3>
+      <div class="field">
+        <input id="sch-q" placeholder="Describe your situation (e.g. widow with children, old age, farmer)"/>
+        <button class="btn" onclick="searchSchemes()">Search</button>
+      </div>
+      <div id="fam-chips"></div>
+    </div>
+    <div id="schemes-list"></div>
+  </div>
+
+  <div class="panel-footer" style="margin:18px 4px;color:#7a8a99;font-size:11px;line-height:1.5;text-align:center">
+    ℹ️ You're using an AI-assisted government services helper. Information shown is for
+    guidance only and may not reflect the latest rules — verify on the official department
+    portal or helpline before acting. This is not legal or financial advice.
+  </div>
+
+  <div class="panel" id="p-projects">
+    <div class="card">
+      <h3>Development projects near you</h3>
+      <div class="field">
+        <input id="prj-d" placeholder="District (e.g. Chennai)"/>
+        <button class="btn" onclick="findProjects()">Find</button>
+      </div>
+    </div>
+    <div id="projects-list"></div>
+  </div>
+</div>
+
+<script>
+const API="/api/v1"; let CID=null, STATE=null, MOB=null, TOKEN=null;
+const $=s=>document.querySelector(s);
+// Phase 6e security — escape ALL server/citizen-controlled text before it
+// goes into innerHTML. Complaint titles, notes, scheme/project names etc.
+// are untrusted (a citizen could inject markup or a script tag in a complaint).
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>(
+  {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function tab(t){document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.t===t));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active')); $('#p-'+t).classList.add('active');
+  if(t==='schemes' && !window._famLoaded) loadFamilies();
+  if(t==='projects') findProjects();}
+async function api(path,opts){const r=await fetch(API+path,opts);if(!r.ok) throw await r.json().catch(()=>({detail:r.status}));return r.json();}
+
+async function signIn(){
+  MOB=$('#msisdn').value.trim();
+  const r=await api('/auth/init',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({msisdn:MOB})});
+  CID=r.citizenId; STATE=r.stateCode||'TN'; TOKEN=r.wsToken||null;
+  $('#who').textContent=`${r.stateEmoji||''} ${r.stateName||STATE} · ${CID.slice(0,10)}…`;
+  loadRecords(); connectWS();
+}
+function statusPill(s){s=esc(s);return `<span class="pill s-${s}">${s.replace('_',' ')}</span>`;}
+function fmt(d){if(!d)return'';try{return new Date(d).toLocaleString();}catch(e){return esc(d);}}
+
+async function loadRecords(){
+  if(!CID){return;}
+  const r=await api(`/citizens/${CID}/records`);
+  const el=$('#records-list');
+  if(!r.count){el.className='empty';el.innerHTML='No records yet. Chat with a department in the simulator to register one, or apply for a scheme here.';return;}
+  el.className='';
+  el.innerHTML=r.records.map(rec=>cardFor(rec)).join('');
+}
+function cardFor(rec){
+  const tl=(rec.timeline||[]).slice(-4).map(e=>`<div class="tl"><div class="when">${fmt(e.at)}</div><div class="what">${esc(String(e.action||'').replace('_',' '))} ${e.to_status?'→ '+esc(e.to_status):''}</div>${e.note?`<div class="note">${esc(e.note)}</div>`:''}</div>`).join('');
+  const canFb = rec.status==='RESOLVED';
+  const open = ['ASSIGNED','IN_PROGRESS','ESCALATED','SUBMITTED','UNDER_VERIFICATION'].includes(rec.status);
+  const rid = esc(rec.recordId);
+  return `<div class="card">
+    <div class="row"><h3>${esc(rec.title)}</h3>${statusPill(rec.status)}</div>
+    <div class="muted">${rid} · ${esc(rec.department)} · ${esc(rec.category)} · <span class="lv">Level ${esc(rec.level)}</span></div>
+    ${rec.slaBreached?'<div class="muted" style="color:#c2410c">⏫ SLA breached / escalated</div>':''}
+    <div class="timeline">${tl}</div>
+    <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+      ${open?`<button class="btn alt" onclick="remind('${rec.recordId}')">🔔 Send reminder</button>`:''}
+      ${canFb?`<button class="btn" onclick="openFb('${rec.recordId}')">⭐ Give feedback</button>`:''}
+      <button class="btn alt" onclick="reopen('${rec.recordId}')">🔄 Reopen</button>
+    </div>
+    <div id="fb-${rec.recordId}"></div>
+  </div>`;
+}
+function authHdr(){const h={'Content-Type':'application/json'};if(TOKEN)h['Authorization']='Bearer '+TOKEN;return h;}
+async function remind(id){await api(`/records/${id}/reminder`,{method:'POST',headers:authHdr(),body:JSON.stringify({citizen_id:CID})});loadRecords();}
+async function reopen(id){await api(`/records/${id}/reopen`,{method:'POST',headers:authHdr(),body:JSON.stringify({citizen_id:CID,reason:'Reopened by citizen'})});loadRecords();}
+function openFb(id){
+  const box=$('#fb-'+id);let cur=0;
+  box.innerHTML=`<div style="margin-top:8px"><span class="stars" id="st-${id}">☆☆☆☆☆</span>
+    <input id="fc-${id}" placeholder="comment (optional)" style="border:1px solid #e6e9ee;border-radius:8px;padding:7px;margin-left:8px"/>
+    <button class="btn" onclick="sendFb('${id}')">Submit</button></div>`;
+  const st=$('#st-'+id);
+  st.onclick=e=>{};
+  st.addEventListener('mousemove',e=>{const r=st.getBoundingClientRect();cur=Math.ceil((e.clientX-r.left)/(r.width/5));cur=Math.max(1,Math.min(5,cur));st.textContent='★★★★★'.slice(0,cur)+'☆☆☆☆☆'.slice(0,5-cur);});
+  st.dataset.r=5; st.addEventListener('click',()=>{st.dataset.r=cur||5;});
+  st.dataset.r=0; st._get=()=>cur;
+  window['_fb_'+id]=()=>cur;
+}
+async function sendFb(id){
+  const rating=window['_fb_'+id]?window['_fb_'+id]():5; const comment=$('#fc-'+id).value;
+  await api(`/records/${id}/feedback`,{method:'POST',headers:authHdr(),body:JSON.stringify({citizen_id:CID,rating:rating||5,comment})});
+  loadRecords();
+}
+async function trackRef(){
+  const id=$('#trk-id').value.trim(),mob=$('#trk-mob').value.trim();
+  const res=$('#track-result');
+  try{const rec=await api(`/track/${id}`+(mob?`?mobile=${mob}`:''));res.innerHTML=cardFor(rec);}
+  catch(e){res.innerHTML=`<div class="card"><div class="muted">${e.detail||'Not found'}</div></div>`;}
+}
+async function loadFamilies(){
+  window._famLoaded=true;
+  const r=await api('/schemes/families');
+  $('#fam-chips').innerHTML=r.families.map(f=>`<span class="scheme-fam" style="cursor:pointer" onclick="byFamily('${esc(f.family)}')">${esc(f.label)} (${esc(f.count)})</span>`).join('');
+}
+async function byFamily(fam){const r=await api(`/schemes?family=${fam}&state=${STATE||''}`);renderSchemes(r.schemes);}
+async function searchSchemes(){const q=$('#sch-q').value;const r=await api(`/schemes?q=${encodeURIComponent(q)}&state=${STATE||''}`);renderSchemes(r.schemes);}
+function renderSchemes(list){
+  $('#schemes-list').innerHTML=(list||[]).map(s=>`<div class="card">
+    <div class="row"><h3>${esc(s.name)}</h3><span class="scheme-fam">${esc(String(s.family||'').replace('_',' '))}</span></div>
+    <div class="muted">${esc(s.summary||'')}</div>
+    <div style="margin:6px 0;font-size:13px"><b>Benefit:</b> ${esc(s.benefit||'')}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn alt" onclick="checkElig('${s.scheme_id}')">Check eligibility</button>
+      <button class="btn" onclick="applyScheme('${s.scheme_id}','${(s.name||'').replace(/'/g,'')}')">Apply</button>
+      ${s.helpline?`<span class="muted" style="align-self:center">☎ ${s.helpline}</span>`:''}
+    </div><div id="el-${s.scheme_id}"></div></div>`).join('') || '<div class="empty">No schemes found.</div>';
+}
+async function checkElig(id){
+  const r=await api(`/schemes/${id}/check-eligibility`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({citizen_id:CID})});
+  const checks=(r.checks||[]).map(c=>`<div class="ms ${c.result==='pass'?'done':'todo'}">${c.result==='pass'?'✓':c.result==='fail'?'✗':'?'} ${esc(c.label)}</div>`).join('');
+  $('#el-'+id).innerHTML=`<div style="margin-top:8px;padding:8px;background:#f7fafc;border-radius:8px"><b>${esc(String(r.status||'').replace('_',' '))}</b>${checks}<div class="muted">Docs: ${esc((r.documents_required||[]).join(', '))}</div>
+    <div class="muted" style="color:#92580b;margin-top:6px">ℹ️ Indicative only — final eligibility is decided after official verification of your documents.</div></div>`;
+}
+async function applyScheme(id,name){
+  if(!CID){alert('Enter your mobile first');return;}
+  const r=await api(`/schemes/${id}/apply`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({citizen_id:CID})});
+  alert(`Application created: ${r.recordId}\nStatus: ${r.status}\nTrack it in "My Records".`);
+  loadRecords();
+}
+async function findProjects(){
+  const d=$('#prj-d').value.trim();
+  const r=await api(`/projects?state=${STATE||''}${d?`&district=${encodeURIComponent(d)}`:''}`);
+  $('#projects-list').innerHTML=(r.projects||[]).map(p=>`<div class="card">
+    <div class="row"><h3>${esc(p.name)}</h3>${statusPill(p.status)}</div>
+    <div class="muted">${esc(p.projectId)} · ${esc(p.type)} · ${esc(p.district)} · ₹${esc(p.sanctionedCostLakh)} lakh · ${esc(p.fundingSource||'')}</div>
+    <div class="bar"><i style="width:${Number(p.percentComplete)||0}%"></i></div>
+    <div class="muted">${esc(p.percentComplete)}% complete · ${esc(p.milestonesDone)}/${esc(p.milestonesTotal)} milestones · ETA ${esc(p.expectedCompletion)}</div>
+    ${p.milestones.map(m=>`<div class="ms ${m.done?'done':'todo'}">${m.done?'✓':'○'} ${esc(m.name)} ${m.done?'('+esc(m.date)+')':'(ETA '+esc(m.eta||'')+')'}</div>`).join('')}
+    <button class="btn alt" style="margin-top:8px" onclick="reportIssue('${p.projectId}','${(p.name||'').replace(/'/g,'')}')">🚧 Report an issue</button>
+  </div>`).join('') || '<div class="empty">No projects found.</div>';
+}
+async function reportIssue(pid,name){
+  if(!CID){alert('Enter your mobile first');return;}
+  const desc=prompt('Describe the issue with: '+name);if(desc===null)return;
+  const r=await api(`/projects/${pid}/report-issue`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({citizen_id:CID,description:desc})});
+  alert(`Complaint registered: ${r.recordId}\nTrack it in "My Records".`);loadRecords();
+}
+let ws=null;
+function connectWS(){
+  try{ws&&ws.close();ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/ws?citizenId='+CID+(TOKEN?'&token='+encodeURIComponent(TOKEN):''));
+    ws.onmessage=ev=>{const m=JSON.parse(ev.data);if(m.type==='record_update'||m.type==='feedback_request'){loadRecords();}};}catch(e){}
+}
+signIn();
+</script>
+</body>
+</html>

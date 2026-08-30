@@ -1,0 +1,11 @@
+{
+  "id": "land_dispute",
+  "name": "Land Dispute Assistant",
+  "description": "Bundles land-record tools with guidance for resolving ownership/boundary disputes. Example skill — wire it to agents on the Skills page (default_agents is empty, so it is inert until then).",
+  "instructions": "When the citizen raises a land-record or ownership dispute, first fetch their Patta from DigiLocker to confirm ownership and survey number, then file a grievance with that exact survey number. Never assert ownership or boundaries without the Patta on hand.",
+  "tool_ids": ["digilocker.fetch_patta", "cmo.create_grievance"],
+  "corpus_id": "revenue",
+  "default_agents": [],
+  "source": "builtin",
+  "enabled": true
+}

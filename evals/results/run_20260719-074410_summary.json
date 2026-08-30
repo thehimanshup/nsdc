@@ -1,0 +1,29 @@
+{
+ "run_at": "2026-07-19T07:44:10+00:00",
+ "llm_provider": "mock",
+ "manifest_id": "man-84f422d28af5",
+ "items_run": 40,
+ "items_skipped_categories": 0,
+ "M1_citation_completeness_pct": 100.0,
+ "M4_refusal_correctness_pct": 93.8,
+ "answer_rate_pct": 54.2,
+ "retrieval_must_cite_hit_pct": 92.3,
+ "M6_rbac_injection_refusal_pct": 100.0,
+ "M2_M3_grounding_judge": "SKIPPED (mock mode \u2014 enable with live judge)",
+ "latency_p50_ms": 15,
+ "latency_p95_ms": 39,
+ "failures": [
+  "G-007",
+  "G-008",
+  "G-011",
+  "G-015",
+  "G-016",
+  "G-017",
+  "G-019",
+  "G-020",
+  "G-022",
+  "G-023",
+  "G-026",
+  "G-040"
+ ]
+}

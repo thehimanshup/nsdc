@@ -1,0 +1,2 @@
+{"source": "user_feedback", "feedback_id": "fb_3478637538", "persona": "learner", "query": "test q", "observed_answer": "bad answer", "comment": "", "status": "candidate — needs SME rubric + expected_behavior"}
+{"source": "user_feedback", "feedback_id": "fb_f2dc397ca5", "persona": "learner", "query": "Tell me about the Advanced Robotics Technician course fees.", "observed_answer": "I don't have sufficient evidence in my knowledge base to answer this reliably, so I won't guess.", "comment": "", "status": "candidate — needs SME rubric + expected_behavior"}

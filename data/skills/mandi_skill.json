@@ -1,0 +1,13 @@
+{
+  "id": "mandi_skill",
+  "name": "Mandi Price Skill",
+  "description": "Live crop/vegetable/fruit mandi prices via the MCP server",
+  "instructions": "When this skill is active and the citizen asks about crop, vegetable or fruit prices (mandi rate, bhav, or MSP), you MUST call the mandi price tool and quote the modal price in ₹/quintal, the mandi name, and the date.",
+  "tool_ids": [
+    "mcp.mandi_prices.mandi_price"
+  ],
+  "corpus_id": "",
+  "default_agents": [],
+  "source": "external",
+  "enabled": true
+}

@@ -1,0 +1,9 @@
+id,label,nos_code
+skill-vitals,Vital-signs measurement,HSS/N5102
+skill-adl,Activities-of-daily-living support,HSS/N5101
+skill-infection,Infection control practice,HSS/N5104
+skill-bmw,Biomedical waste handling,HSS/N5110
+skill-homecare,Home-based personal care,HSS/N5121
+skill-mobility,Patient mobility assistance,HSS/N5122
+skill-venipuncture,Venipuncture technique,HSS/N0301
+skill-specimen,Specimen handling & chain of custody,HSS/N0302

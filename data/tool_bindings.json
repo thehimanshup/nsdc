@@ -1,0 +1,82 @@
+{
+  "agriculture.get_mandi_price": {
+    "enabled": false,
+    "agents": [
+      "cmo",
+      "agriculture"
+    ]
+  },
+  "mcp.demo.land_record_status": {
+    "enabled": true,
+    "agents": []
+  },
+  "mcp.demo.ifsc_lookup": {
+    "enabled": true,
+    "agents": []
+  },
+  "revenue.check_dues": {
+    "enabled": true,
+    "agents": [
+      "cmo",
+      "revenue"
+    ]
+  },
+  "mcp.land_records.land_record_status": {
+    "enabled": true,
+    "agents": [
+      "cmo"
+    ]
+  },
+  "mcp.land_records.ifsc_lookup": {
+    "enabled": true,
+    "agents": [
+      "cmo"
+    ]
+  },
+  "mcp.land_records.change_text_case": {
+    "enabled": true,
+    "agents": [
+      "cmo",
+      "health"
+    ]
+  },
+  "mcp.mandi_prices.mandi_price": {
+    "enabled": true,
+    "agents": [
+      "agriculture"
+    ]
+  },
+  "demo.hurray": {
+    "enabled": true,
+    "agents": []
+  },
+  "digilocker.fetch_ration_card": {
+    "enabled": false,
+    "agents": [
+      "ration",
+      "cmo"
+    ]
+  },
+  "digilocker.fetch_dl": {
+    "enabled": false,
+    "agents": [
+      "transport",
+      "cmo"
+    ]
+  },
+  "digilocker.fetch_patta": {
+    "enabled": false,
+    "agents": [
+      "revenue",
+      "agriculture",
+      "cmo"
+    ]
+  },
+  "digilocker.fetch_ec": {
+    "enabled": false,
+    "agents": [
+      "revenue",
+      "cmo"
+    ]
+  }
+}

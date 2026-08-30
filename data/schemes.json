@@ -1,0 +1,278 @@
+{
+ "pmkvy4": {
+  "scheme_id": "pmkvy4",
+  "name": "Pradhan Mantri Kaushal Vikas Yojana 4.0 (PMKVY 4.0)",
+  "family": "skilling",
+  "level": "central",
+  "owning_department": "skilling",
+  "states": [
+   "ALL"
+  ],
+  "summary": "Flagship short-term skill training and Recognition of Prior Learning (RPL). Fee-free NSQF-aligned training at empanelled centres with assessment and certification.",
+  "benefit": "Fee-free training + assessment/certification; RPL certification for existing skills. (PoC seed — verify amounts against latest guidelines.)",
+  "eligibility_rules": [
+   {
+    "field": "nationality",
+    "op": "==",
+    "value": "indian",
+    "label": "Indian national"
+   },
+   {
+    "field": "age",
+    "op": ">=",
+    "value": 15,
+    "label": "Age 15 or above"
+   },
+   {
+    "field": "age",
+    "op": "<=",
+    "value": 45,
+    "label": "Age 45 or below (short-term training)"
+   },
+   {
+    "field": "has_aadhaar",
+    "op": "==",
+    "value": true,
+    "label": "Aadhaar available"
+   }
+  ],
+  "documents_required": [
+   "aadhaar",
+   "bank_passbook",
+   "education_certificate"
+  ],
+  "application_states": [
+   "SUBMITTED",
+   "COUNSELLED",
+   "ENROLLED",
+   "TRAINING",
+   "ASSESSED",
+   "CERTIFIED"
+  ],
+  "official_url": "https://www.pmkvyofficial.org",
+  "helpline": "8800055555",
+  "note": "PoC seed data — validate every figure against the current PMKVY 4.0 guidelines document in the corpus before demo."
+ },
+ "naps": {
+  "scheme_id": "naps",
+  "name": "National Apprenticeship Promotion Scheme (NAPS)",
+  "family": "apprenticeship",
+  "level": "central",
+  "owning_department": "skilling",
+  "states": [
+   "ALL"
+  ],
+  "summary": "Promotes apprenticeship training; government shares stipend cost with employers for registered apprentices.",
+  "benefit": "Partial stipend support shared by GoI with employer; on-the-job training with industry. (PoC seed — verify current stipend share.)",
+  "eligibility_rules": [
+   {
+    "field": "age",
+    "op": ">=",
+    "value": 14,
+    "label": "Age 14+ (18+ for hazardous industries)"
+   },
+   {
+    "field": "education",
+    "op": "in",
+    "value": [
+     "class5+",
+     "iti",
+     "diploma",
+     "graduate"
+    ],
+    "label": "Minimum education per trade"
+   },
+   {
+    "field": "registered_on_portal",
+    "op": "==",
+    "value": true,
+    "label": "Registered on apprenticeship portal"
+   }
+  ],
+  "documents_required": [
+   "aadhaar",
+   "education_certificate",
+   "bank_passbook"
+  ],
+  "application_states": [
+   "REGISTERED",
+   "CONTRACT_SIGNED",
+   "TRAINING",
+   "ASSESSED",
+   "CERTIFIED"
+  ],
+  "official_url": "https://www.apprenticeshipindia.gov.in",
+  "helpline": "18001233444",
+  "note": "PoC seed data — validate against latest NAPS guidelines."
+ },
+ "pm_vishwakarma": {
+  "scheme_id": "pm_vishwakarma",
+  "name": "PM Vishwakarma",
+  "family": "entrepreneurship",
+  "level": "central",
+  "owning_department": "skilling",
+  "states": [
+   "ALL"
+  ],
+  "summary": "Support for traditional artisans and craftspeople across 18 trades: skill upgradation, toolkit incentive, collateral-free credit, market linkage.",
+  "benefit": "Skill training with stipend, toolkit incentive, collateral-free loans at concessional rate. (PoC seed — verify amounts.)",
+  "eligibility_rules": [
+   {
+    "field": "age",
+    "op": ">=",
+    "value": 18,
+    "label": "Age 18 or above"
+   },
+   {
+    "field": "occupation",
+    "op": "in",
+    "value": [
+     "carpenter",
+     "blacksmith",
+     "potter",
+     "cobbler",
+     "tailor",
+     "mason",
+     "goldsmith",
+     "weaver",
+     "other_vishwakarma_trade"
+    ],
+    "label": "Engaged in a listed traditional trade"
+   },
+   {
+    "field": "self_employed",
+    "op": "==",
+    "value": true,
+    "label": "Working in unorganised sector, self-employed basis"
+   }
+  ],
+  "documents_required": [
+   "aadhaar",
+   "bank_passbook",
+   "occupation_proof"
+  ],
+  "application_states": [
+   "SUBMITTED",
+   "VERIFIED_GP_ULB",
+   "SKILL_ASSESSED",
+   "TRAINING",
+   "TOOLKIT",
+   "CREDIT"
+  ],
+  "official_url": "https://pmvishwakarma.gov.in",
+  "helpline": "18002677777",
+  "note": "PoC seed data — validate against latest PM Vishwakarma guidelines."
+ },
+ "jss": {
+  "scheme_id": "jss",
+  "name": "Jan Shikshan Sansthan (JSS)",
+  "family": "skilling",
+  "level": "central",
+  "owning_department": "skilling",
+  "states": [
+   "ALL"
+  ],
+  "summary": "Vocational skill training for non-literates, neo-literates and school dropouts, prioritising women, SC/ST/OBC/minorities and rural/low-income groups.",
+  "benefit": "Low/no-cost doorstep vocational training with certification.",
+  "eligibility_rules": [
+   {
+    "field": "age",
+    "op": ">=",
+    "value": 15,
+    "label": "Age 15 or above"
+   },
+   {
+    "field": "age",
+    "op": "<=",
+    "value": 45,
+    "label": "Age 45 or below"
+   },
+   {
+    "field": "education",
+    "op": "in",
+    "value": [
+     "non_literate",
+     "neo_literate",
+     "dropout",
+     "class8",
+     "class10"
+    ],
+    "label": "Non/neo-literate or school dropout priority"
+   }
+  ],
+  "documents_required": [
+   "aadhaar"
+  ],
+  "application_states": [
+   "SUBMITTED",
+   "ENROLLED",
+   "TRAINING",
+   "ASSESSED",
+   "CERTIFIED"
+  ],
+  "official_url": "https://nsdcindia.org/jss",
+  "helpline": "",
+  "note": "PoC seed data — validate against latest JSS norms."
+ },
+ "pm_daksh": {
+  "scheme_id": "pm_daksh",
+  "name": "PM-DAKSH",
+  "family": "skilling",
+  "level": "central",
+  "owning_department": "skilling",
+  "states": [
+   "ALL"
+  ],
+  "summary": "Skilling for marginalised groups (SC, OBC, EWS, DNT, safai karamcharis): upskilling, short-term and long-term programmes with stipend support.",
+  "benefit": "Free training with stipend for eligible categories. (PoC seed — verify amounts.)",
+  "eligibility_rules": [
+   {
+    "field": "age",
+    "op": ">=",
+    "value": 18,
+    "label": "Age 18 or above"
+   },
+   {
+    "field": "age",
+    "op": "<=",
+    "value": 45,
+    "label": "Age 45 or below"
+   },
+   {
+    "field": "social_category",
+    "op": "in",
+    "value": [
+     "sc",
+     "obc",
+     "ews",
+     "dnt",
+     "safai_karamchari"
+    ],
+    "label": "Belongs to an eligible category"
+   },
+   {
+    "field": "annual_income",
+    "op": "<=",
+    "value": 300000,
+    "label": "Income ceiling applies for OBC/EWS (PoC seed value)"
+   }
+  ],
+  "documents_required": [
+   "aadhaar",
+   "caste_certificate",
+   "income_certificate",
+   "bank_passbook"
+  ],
+  "application_states": [
+   "SUBMITTED",
+   "VERIFIED",
+   "ENROLLED",
+   "TRAINING",
+   "ASSESSED",
+   "CERTIFIED"
+  ],
+  "official_url": "https://pmdaksh.dosje.gov.in",
+  "helpline": "",
+  "note": "PoC seed data — validate against latest PM-DAKSH guidelines."
+ }
+}

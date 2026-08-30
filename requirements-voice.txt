@@ -1,0 +1,14 @@
+# Real-time streaming VOICE pipeline (LiveKit agent worker).
+# Install on the machine that runs the worker:
+#     pip install -r requirements-voice.txt
+#
+# These power the low-latency pipeline: Saaras v3 (STT) -> Sarvam-105B (LLM
+# token streaming) -> Bulbul v3 (TTS), with barge-in and turn detection.
+# The base app does NOT need these — the mock press-to-talk path works without.
+
+livekit-agents[sarvam]~=1.5
+livekit-plugins-silero
+
+# OPTIONAL (better/faster end-of-turn than raw VAD). Pulls extra ML deps and can
+# be slow to install — uncomment only if you want it:
+# livekit-plugins-turn-detector

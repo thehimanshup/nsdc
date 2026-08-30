@@ -1,0 +1,26 @@
+{
+  "demo_skill": {
+    "enabled": true,
+    "agents": [
+      "agriculture"
+    ]
+  },
+  "ration_card": {
+    "enabled": true,
+    "agents": [
+      "cmo",
+      "agriculture"
+    ]
+  },
+  "mandi_skill": {
+    "enabled": false,
+    "agents": []
+  },
+  "health_triage_guide": {
+    "enabled": true,
+    "agents": [
+      "agriculture",
+      "health"
+    ]
+  }
+}

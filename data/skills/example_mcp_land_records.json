@@ -1,0 +1,11 @@
+{
+  "id": "mcp_land_records",
+  "name": "Land Records (MCP) Assistant",
+  "description": "External skill that bundles a REMOTE land-records MCP tool with guidance. To activate: on the Tools page add an MCP server named 'land_records' exposing a 'fetch_rtc' tool, then wire this skill to an agent on the Skills page. Until that server is connected, the tool below shows as missing (expected).",
+  "instructions": "When a citizen asks about their RTC / 7-12 extract or land-record status, call the land-records lookup with their survey number and district. Report ONLY the fields the service returns — never invent ownership, extent, or mutation status. If the service is unavailable, say so and point to the revenue helpline.",
+  "tool_ids": ["mcp.land_records.fetch_rtc"],
+  "corpus_id": "revenue",
+  "default_agents": [],
+  "source": "external",
+  "enabled": true
+}

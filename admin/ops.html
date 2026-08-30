@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Casework Operations — Admin (Government Services AI Platform)</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0f141a;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;}
+  .wrap{max-width:1200px;margin:0 auto;padding:18px;}
+  h1{font-size:20px;margin:0 0 2px;} .sub{color:#8b98a5;font-size:13px;margin-bottom:16px;}
+  .stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+  .stat{background:#161b22;border:1px solid #232a33;border-radius:12px;padding:12px 16px;min-width:110px;}
+  .stat b{font-size:22px;display:block;} .stat span{font-size:11px;color:#8b98a5;text-transform:uppercase;letter-spacing:.5px;}
+  .stat.breach b{color:#f87171;}
+  .tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+  .tab{background:#161b22;border:1px solid #232a33;color:#c2ccd6;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;}
+  .tab.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8;}
+  .filters{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+  .filters select,.filters input{background:#0d1117;border:1px solid #2a323c;color:#e6edf3;border-radius:8px;padding:8px 10px;font-size:13px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid #1e252e;vertical-align:top;}
+  th{color:#8b98a5;font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
+  tr:hover{background:#141a21;}
+  .pill{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;}
+  .s-ASSIGNED,.s-IN_PROGRESS,.s-SUBMITTED,.s-UNDER_VERIFICATION{background:#1e3a8a;color:#bfdbfe;}
+  .s-ESCALATED{background:#7c2d12;color:#fed7aa;}
+  .s-RESOLVED,.s-SANCTIONED{background:#14532d;color:#bbf7d0;}
+  .s-CLOSED,.s-DISBURSED{background:#334155;color:#cbd5e1;}
+  .s-REJECTED,.s-WITHDRAWN{background:#7f1d1d;color:#fecaca;}
+  .lv{font-size:11px;background:#475569;border-radius:5px;padding:1px 6px;}
+  .act{background:#1d4ed8;border:none;color:#fff;border-radius:7px;padding:5px 9px;font-size:12px;cursor:pointer;margin:1px;}
+  .act.warn{background:#b45309;} .act.ok{background:#15803d;}
+  .panel{display:none;} .panel.active{display:block;}
+  .card{background:#161b22;border:1px solid #232a33;border-radius:12px;padding:14px;margin-bottom:10px;}
+  .muted{color:#8b98a5;font-size:12px;}
+  code{background:#0d1117;padding:1px 5px;border-radius:5px;color:#9ece6a;}
+  .demo{font-size:12px;color:#fbbf24;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🗂️ Casework Operations Console</h1>
+  <div class="sub">Phase 6e — live grievance / application queue with L1→L4 escalation. <span class="demo" id="demo"></span></div>
+
+  <div class="stats" id="stats"></div>
+  <div class="tabs">
+    <div class="tab active" data-t="queue" onclick="tab('queue')">Records queue</div>
+    <div class="tab" data-t="workflows" onclick="tab('workflows')">Workflows</div>
+    <div class="tab" data-t="templates" onclick="tab('templates')">Agent templates</div>
+    <div class="tab" data-t="catalog" onclick="tab('catalog')">Schemes & projects</div>
+  </div>
+
+  <div class="panel active" id="p-queue">
+    <div class="filters">
+      <select id="f-status" onchange="loadQueue()"><option value="">All statuses</option>
+        <option>ASSIGNED</option><option>ESCALATED</option><option>IN_PROGRESS</option>
+        <option>RESOLVED</option><option>CLOSED</option><option>SUBMITTED</option></select>
+      <select id="f-dept" onchange="loadQueue()"><option value="">All departments</option></select>
+      <button class="tab" onclick="loadQueue()">↻ Refresh</button>
+    </div>
+    <table><thead><tr><th>Reference</th><th>Title</th><th>Dept</th><th>Status</th><th>Owner desk</th><th>SLA due</th><th>Actions</th></tr></thead>
+    <tbody id="queue"></tbody></table>
+  </div>
+
+  <div class="panel" id="p-workflows"><div id="workflows"></div></div>
+  <div class="panel" id="p-templates"><div id="templates"></div></div>
+  <div class="panel" id="p-catalog"><div id="catalog"></div></div>
+</div>
+<script>
+const API="/api/v1";const $=s=>document.querySelector(s);
+// Phase 6e security — escape untrusted (citizen-entered) text before it is
+// placed into innerHTML in this privileged officer console. A complaint
+// title/note is attacker-controllable, so stored-XSS protection is critical here.
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>(
+  {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function tab(t){document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.t===t));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));$('#p-'+t).classList.add('active');
+  if(t==='workflows')loadWorkflows();if(t==='templates')loadTemplates();if(t==='catalog')loadCatalog();}
+async function api(p,o){const r=await fetch(API+p,o);return r.json();}
+function fmt(d){if(!d)return'—';try{return new Date(d).toLocaleString();}catch(e){return d;}}
+function pill(s){return `<span class="pill s-${s}">${s.replace('_',' ')}</span>`;}
+
+async function loadQueue(){
+  const st=$('#f-status').value,dp=$('#f-dept').value;
+  const r=await api(`/admin/records?status=${st}&department=${dp}`);
+  $('#demo').textContent=r.demoClock?'⏱ DEMO CLOCK ON — SLA hours run as minutes (escalation is watchable live).':'';
+  const s=r.stats;
+  $('#stats').innerHTML=`<div class="stat"><b>${s.total}</b><span>total</span></div>
+    <div class="stat breach"><b>${s.slaBreached}</b><span>SLA breached</span></div>`+
+    Object.entries(s.byStatus).map(([k,v])=>`<div class="stat"><b>${v}</b><span>${k}</span></div>`).join('');
+  if(!$('#f-dept').dataset.filled){$('#f-dept').dataset.filled=1;
+    $('#f-dept').innerHTML='<option value="">All departments</option>'+Object.keys(s.byDepartment).map(d=>`<option>${d}</option>`).join('');}
+  $('#queue').innerHTML=r.records.map(rec=>`<tr>
+    <td><code>${esc(rec.recordId)}</code></td><td>${esc(rec.title)}<div class="muted">${esc(rec.category)}</div></td>
+    <td>${esc(rec.department)}</td><td>${pill(rec.status)} <span class="lv">L${esc(rec.level)}</span>${rec.slaBreached?' ⏫':''}</td>
+    <td>${esc(rec.ownerDesk)}</td><td class="muted">${fmt(rec.slaDueAt)}</td>
+    <td>
+      <button class="act ok" onclick="resolve('${rec.recordId}')">Resolve</button>
+      <button class="act warn" onclick="escalateRec('${rec.recordId}')">Escalate</button>
+    </td></tr>`).join('') || '<tr><td colspan=7 class="muted">No records.</td></tr>';
+}
+async function resolve(id){await api(`/admin/records/${id}/resolve`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to_status:'RESOLVED',note:'Resolved by officer'})});loadQueue();}
+// NOTE: must NOT be named esc() — that's the HTML escaper above. The collision
+// made every esc(...) render call fire an escalate API request in a loop.
+async function escalateRec(id){await api(`/admin/records/${id}/escalate`,{method:'POST'});loadQueue();}
+async function loadWorkflows(){const r=await api('/admin/workflows');
+  $('#workflows').innerHTML=r.workflows.map(w=>`<div class="card"><b>${w.title}</b> <span class="lv">${w.shape}</span>
+    <div class="muted">${w.description||''}</div>
+    <div class="muted">Dept: ${w.owner_department} · creates: <code>${(w.creates_record||{}).category||'-'}</code> · triggers: ${(w.triggers||[]).slice(0,3).join(', ')}</div></div>`).join('');}
+async function loadTemplates(){const r=await api('/admin/agent-templates');
+  $('#templates').innerHTML=r.templates.map(t=>`<div class="card"><b>${t.default_emoji} ${t.label}</b>
+    <div class="muted">${t.description}</div><div class="muted">tone: ${t.tone} · tools: ${t.tool_ids.length}</div></div>`).join('')
+    +`<div class="card muted">POST <code>/api/v1/admin/agents/from-template</code> to mint a new department agent from any of these.</div>`;}
+async function loadCatalog(){const s=await api('/admin/schemes');const p=await api('/admin/projects');
+  $('#catalog').innerHTML=`<div class="card"><b>Schemes (${s.count})</b>`+
+    s.families.map(f=>`<div class="muted">${f.label}: ${f.schemeIds.join(', ')||'—'}</div>`).join('')+`</div>`+
+    `<div class="card"><b>Development projects (${p.count})</b>`+
+    p.projects.map(pr=>`<div class="muted"><code>${pr.projectId}</code> ${pr.name} — ${pr.percentComplete}% (${pr.status})</div>`).join('')+`</div>`;}
+loadQueue();setInterval(()=>{if($('#p-queue').classList.contains('active'))loadQueue();},8000);
+</script>
+</body>
+</html>

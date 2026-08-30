@@ -1,0 +1,50 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.0
+httpx>=0.27.0
+python-multipart>=0.0.9
+python-dotenv>=1.0.0
+
+# Phase 6f — LangGraph/LangChain orchestration engine (OPT-IN via
+# ORCHESTRATOR_ENGINE=graph). The legacy engine has NO dependency on these,
+# so the app still runs if they're absent.
+langgraph>=0.2.0
+langchain-core>=0.3.0
+langchain-openai>=0.2.0   # Sarvam chat is OpenAI-compatible
+
+# PDF ingestion (backend/substrate/ingest.py) and legacy-document OCR
+# rasterization (pdfplumber's page.to_image(), used to route scanned PDF
+# pages through Sarvam Vision OCR). Was previously only a lazy "pip install"
+# comment; now load-bearing for the OCR-detection path too.
+pdfplumber>=0.11.0
+# Structure-preserving HTML extraction (headings/tables) in backend/substrate/ingest.py
+beautifulsoup4>=4.12.0
+Pillow>=10.0.0
+
+# Vector store — Qdrant client. Supports both a remote server (`url=`) and
+# local/serverless file-based mode (`path=`, no server process needed) used
+# by backend/substrate/vector_store.py and kg_embed.py.
+qdrant-client>=1.9.0
+
+# Optional, sovereign tracing for the graph engine (OTEL_TRACING=true).
+# No-ops if absent. Console exporter by default; set OTEL_EXPORTER_OTLP_ENDPOINT
+# for a self-hosted collector. (We do NOT use LangSmith — US SaaS / DPDP.)
+opentelemetry-sdk>=1.20.0
+opentelemetry-api>=1.20.0
+
+# truststore reads the OS certificate store (Windows / macOS / Linux),
+# which lets Sarvam calls work behind corporate proxies that inject their
+# own CA into the OS trust store but not into Python's `certifi` bundle.
+# Required to fix CERTIFICATE_VERIFY_FAILED on corporate networks.
+truststore>=0.10.0; python_version >= "3.10"
+
+# cryptography for Ed25519 signatures on the Phase 6 consent ledger + audit
+# log. If unavailable on a constrained environment, the code transparently
+# falls back to HMAC-SHA256 with a server secret.
+cryptography>=42.0
+
+# Configurable tools & MCP — official Model Context Protocol client SDK, used
+# by backend/mcp_loader.py to connect to EXTERNAL tool servers listed in
+# data/mcp_servers.json. OPTIONAL: if absent, MCP tools are simply skipped and
+# the rest of the app (built-in + plugin tools) is unaffected.
+mcp>=1.2.0

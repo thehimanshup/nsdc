@@ -1,0 +1,16 @@
+{
+  "land_records": {
+    "url": "http://127.0.0.1:9001/mcp",
+    "transport": "streamable_http",
+    "auth_token_env": "",
+    "enabled": true,
+    "tool_keywords": {}
+  },
+  "mandi_prices": {
+    "url": "http://127.0.0.1:9002/mcp",
+    "transport": "streamable_http",
+    "auth_token_env": "",
+    "enabled": true,
+    "tool_keywords": {}
+  }
+}

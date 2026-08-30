@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  PUBLIC (internet-facing) IIS site — Twilio webhooks ONLY.
+  Rewrites ONLY /webhooks/twilio/* and /api/v1/audio/* to uvicorn.
+  Everything else returns 404, so the private app is invisible on this plane.
+  Deploy: rename to `web.config` and place in the GovApp-Webhooks site root
+          (e.g. C:\govapp\phase6e\iis-webhooks\web.config).
+  Requires: URL Rewrite + ARR (proxy enabled), publicly trusted TLS cert.
+  App-level TWILIO_VALIDATE_SIGNATURES=true still rejects forged callbacks.
+-->
+<configuration>
+  <system.webServer>
+    <rewrite>
+      <rules>
+        <!-- Allow: Twilio callbacks + the TTS audio Twilio fetches for <Play> -->
+        <rule name="TwilioWebhooks" stopProcessing="true">
+          <match url="^(webhooks/twilio/.*|api/v1/audio/.*)$" />
+          <action type="Rewrite" url="http://127.0.0.1:8000/{R:0}" />
+        </rule>
+        <!-- Optional: outbound WhatsApp media Twilio must fetch. Uncomment if used.
+        <rule name="TwilioUploads" stopProcessing="true">
+          <match url="^(api/v1/uploads/.*)$" />
+          <action type="Rewrite" url="http://127.0.0.1:8000/{R:0}" />
+        </rule>
+        -->
+        <!-- Block everything else on the public plane -->
+        <rule name="BlockEverythingElse" stopProcessing="true">
+          <match url=".*" />
+          <action type="CustomResponse" statusCode="404" statusReason="Not Found"
+                  statusDescription="Not Found" />
+        </rule>
+      </rules>
+    </rewrite>
+    <security>
+      <requestFiltering>
+        <!-- 16 MB: inbound WhatsApp media -->
+        <requestLimits maxAllowedContentLength="16777216" />
+      </requestFiltering>
+    </security>
+  </system.webServer>
+</configuration>

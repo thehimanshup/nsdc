@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sovereign AI Substrate — PoC Console</title>
+<style>
+  :root { --blue:#185fa5; --teal:#0f6e56; --purple:#534ab7; --bg:#f6f7f9;
+          --card:#fff; --border:#dfe3e8; --text:#1d2430; --muted:#66707d;
+          --green:#2c7a2c; --red:#a32d2d; --amber:#8a5a00; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.55 system-ui,Segoe UI,sans-serif; background:var(--bg); color:var(--text); }
+  header { background:var(--blue); color:#fff; padding:10px 20px; display:flex; align-items:center; gap:14px; }
+  header h1 { font-size:16px; font-weight:600; margin:0; }
+  header .who { margin-left:auto; font-size:13px; opacity:.9; }
+  .demo-banner { background:#fff3cd; color:#7a5c00; font-size:12.5px; padding:5px 20px; border-bottom:1px solid #eadfa8; }
+  nav { display:flex; gap:4px; padding:10px 20px 0; }
+  nav button { border:1px solid var(--border); border-bottom:none; background:#eef0f3; padding:8px 16px;
+               border-radius:8px 8px 0 0; cursor:pointer; font-size:14px; color:var(--muted); }
+  nav button.active { background:var(--card); color:var(--text); font-weight:600; }
+  main { padding:0 20px 30px; }
+  .panel { background:var(--card); border:1px solid var(--border); border-radius:0 10px 10px 10px; padding:18px; min-height:420px; }
+  .hidden { display:none !important; }
+  .row { display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  input,select,textarea { padding:8px 10px; border:1px solid var(--border); border-radius:8px; font:inherit; }
+  input[type=text] { flex:1; min-width:240px; }
+  button.act { background:var(--blue); color:#fff; border:none; padding:8px 18px; border-radius:8px; cursor:pointer; font:inherit; }
+  button.act.secondary { background:var(--teal); } button.act.danger { background:var(--red); }
+  button.act:disabled { opacity:.5; cursor:default; }
+  .msg { border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin:10px 0; }
+  .msg.user { background:#eef4fb; } .msg.bot { background:#fff; }
+  .msg .meta { font-size:12px; color:var(--muted); margin-top:8px; display:flex; gap:12px; flex-wrap:wrap; }
+  .refusal { border-left:4px solid var(--red); border-radius:0 10px 10px 0; }
+  .claims { margin-top:10px; }
+  .claim { font-size:13px; background:#f2f0fb; border:1px solid #d9d4f2; border-radius:8px; padding:8px 10px; margin:6px 0; }
+  .claim .cid { color:var(--purple); font-family:ui-monospace,monospace; font-size:12px; }
+  .badge { display:inline-block; font-size:11.5px; padding:2px 9px; border-radius:20px; font-weight:600; }
+  .b-ok { background:#e3f2e3; color:var(--green); } .b-fail { background:#fbe9e9; color:var(--red); }
+  .b-pend { background:#fff3cd; color:var(--amber); }
+  table { width:100%; border-collapse:collapse; font-size:13.5px; margin-top:10px; }
+  th,td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; font-size:12.5px; }
+  pre { background:#f4f5f7; border:1px solid var(--border); border-radius:8px; padding:10px; font-size:12px; overflow:auto; }
+  .draft-body { white-space:pre-wrap; background:#fbfbfc; border:1px dashed var(--border); border-radius:8px;
+                padding:12px; font-size:13.5px; max-height:260px; overflow:auto; }
+  .login-box { max-width:420px; margin:60px auto; background:var(--card); border:1px solid var(--border);
+               border-radius:12px; padding:26px; }
+  .hint { font-size:12.5px; color:var(--muted); }
+  h3 { margin:4px 0 10px; font-size:15px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🇮🇳 Sovereign AI Substrate — PoC Console</h1>
+  <span class="who" id="who"></span>
+  <button class="act danger hidden" id="logoutBtn" onclick="logout()" style="padding:5px 12px;font-size:13px">Logout</button>
+</header>
+<div class="demo-banner">Demonstration environment · synthetic data only · all interactions are consent-bound and recorded in a signed audit log</div>
+
+<div id="loginView" class="login-box">
+  <h3>Sign in (demo users)</h3>
+  <div class="row"><select id="userSel" style="flex:1" onchange="fillPwd()"></select></div>
+  <div class="row"><input type="text" id="pwd" placeholder="password" style="flex:1"></div>
+  <div class="row"><button class="act" onclick="login()" style="flex:1">Sign in</button></div>
+  <div class="hint" id="loginErr"></div>
+  <div class="hint">Roles map to surfaces: learner → Skill Mentor · officer → Copilot, drafts, audit · sme → Content QA · admin → everything.</div>
+</div>
+
+<div id="appView" class="hidden">
+  <nav id="tabs"></nav>
+  <main><div class="panel">
+
+    <section id="tab-mentor">
+      <h3>Ask (grounded — every claim cited, refusals are honest)</h3>
+      <div class="row">
+        <input type="text" id="q" placeholder="e.g. I passed class 10 and want a job in healthcare. Which course should I take?"
+               onkeydown="if(event.key==='Enter')ask()">
+        <select id="agentSel"></select>
+        <button class="act" onclick="ask()" id="askBtn">Ask</button>
+      </div>
+      <div class="hint">Try: eligibility for PMKVY · NSQF level of GDA · a course that doesn't exist (watch the refusal) · same question in Hindi</div>
+      <div id="chat"></div>
+    </section>
+
+    <section id="tab-analytics" class="hidden">
+      <h3>Jurisdiction-scoped analytics (the model never writes SQL)</h3>
+      <div class="row">
+        <input type="text" id="aq" placeholder="e.g. which centres have low attendance?" onkeydown="if(event.key==='Enter')analytics()">
+        <button class="act secondary" onclick="analytics()">Run</button>
+      </div>
+      <div class="hint">Templates: attendance · dropout · enrolment · certification funnel · placement. Scope is injected from your token — try asking for “ALL districts”.</div>
+      <div id="aout"></div>
+    </section>
+
+    <section id="tab-drafts" class="hidden">
+      <h3>Draft notes — maker-checker (never auto-sent)</h3>
+      <div class="row">
+        <input type="text" id="dsubject" placeholder="Subject" value="Monthly scheme status">
+        <button class="act secondary" onclick="makeDraft()">Generate draft</button>
+      </div>
+      <div id="drafts"></div>
+    </section>
+
+    <section id="tab-contentqa" class="hidden">
+      <h3>Content QA — NOS-level coverage & tagged item drafts</h3>
+      <div class="row">
+        <select id="covCourse"><option value="crs-gda-01">crs-gda-01 (GDA)</option>
+          <option value="crs-hha-01">crs-hha-01 (HHA)</option>
+          <option value="crs-phleb-01">crs-phleb-01 (Phlebotomy)</option></select>
+        <select id="covQp"><option>HSS/Q5101</option><option>HSS/Q5102</option><option>HSS/Q0301</option></select>
+        <button class="act secondary" onclick="coverage()">Check coverage</button>
+      </div>
+      <div id="covOut"></div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+      <div class="row">
+        <select id="itemNos"><option>HSS/N5101</option><option>HSS/N5102</option><option>HSS/N5104</option>
+          <option>HSS/N5110</option><option>HSS/N5121</option><option>HSS/N0301</option></select>
+        <select id="itemCount"><option>3</option><option selected>5</option><option>8</option></select>
+        <select id="itemBloom"><option value="2">Bloom ≤2</option><option value="3" selected>Bloom ≤3</option><option value="4">Bloom ≤4</option></select>
+        <button class="act secondary" onclick="draftItems()">Draft items</button>
+      </div>
+      <div id="itemsOut"></div>
+    </section>
+
+    <section id="tab-audit" class="hidden">
+      <h3>Audit trail <span id="chainBadge"></span></h3>
+      <div class="hint">Every query, analytics run, draft and decision — hash-chained and Ed25519-signed.</div>
+      <div id="audit"></div>
+    </section>
+
+    <section id="tab-registry" class="hidden">
+      <h3>Version registry — deterministic index manifests & KG releases</h3>
+      <div id="registry"></div>
+    </section>
+
+  </div></main>
+</div>
+
+<script>
+const API = "/api/v1/substrate";
+let TOKEN = sessionStorage.getItem("substrate_token") || "";
+let ME = JSON.parse(sessionStorage.getItem("substrate_me") || "null");
+const PWDS = {meena:"learner-demo", rajesh:"officer-demo", leela:"officer-demo-2", iyer:"sme-demo", admin:"admin-demo"};
+const TABS = {
+  mentor:   {label:"💬 Ask", roles:["learner","officer","sme","admin"]},
+  analytics:{label:"📊 Analytics", roles:["officer","admin"]},
+  drafts:   {label:"📝 Draft notes", roles:["officer","admin"]},
+  contentqa:{label:"🔍 Content QA", roles:["sme","admin"]},
+  audit:    {label:"🔏 Audit", roles:["officer","sme","admin"]},
+  registry: {label:"🗂 Registry", roles:["officer","sme","admin","learner"]},
+};
+const AGENTS = {learner:["mentor"], officer:["officer_copilot"], sme:["content_qa"],
+                admin:["mentor","officer_copilot","content_qa"]};
+
+async function api(path, opts={}) {
+  opts.headers = Object.assign({"Content-Type":"application/json"},
+    TOKEN ? {"Authorization":"Bearer "+TOKEN} : {}, opts.headers||{});
+  const r = await fetch(API+path, opts);
+  const data = await r.json().catch(()=> ({}));
+  if (!r.ok) {
+    let d = data.detail;
+    if (Array.isArray(d)) d = d.map(e => e.msg || JSON.stringify(e)).join("; ");
+    else if (d && typeof d === "object") d = JSON.stringify(d);
+    throw new Error(d || ("HTTP " + r.status));
+  }
+  return data;
+}
+const esc = s => (s??"").toString().replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+async function initLogin() {
+  const d = await fetch(API+"/auth/demo-users").then(r=>r.json());
+  userSel.innerHTML = d.users.map(u=>{
+    const j = u.jurisdiction.district ? ` — ${u.jurisdiction.district}` : "";
+    return `<option value="${u.username}">${u.username} (${u.role}${j})</option>`;
+  }).join("");
+  fillPwd();
+}
+function fillPwd(){ pwd.value = PWDS[userSel.value] || ""; }
+
+async function login() {
+  loginErr.textContent = "";
+  try {
+    const d = await api("/auth/login", {method:"POST",
+      body: JSON.stringify({username:userSel.value, password:pwd.value})});
+    TOKEN = d.token; ME = d;
+    sessionStorage.setItem("substrate_token", TOKEN);
+    sessionStorage.setItem("substrate_me", JSON.stringify(d));
+    boot();
+  } catch(e){ loginErr.textContent = "Login failed: "+e.message; }
+}
+function logout(){ sessionStorage.clear(); location.reload(); }
+
+function boot() {
+  loginView.classList.add("hidden"); appView.classList.remove("hidden");
+  logoutBtn.classList.remove("hidden");
+  const j = ME.jurisdiction && ME.jurisdiction.district ? " · "+ME.jurisdiction.district : "";
+  who.textContent = `${ME.name} · ${ME.role}${j}`;
+  tabs.innerHTML = Object.entries(TABS).filter(([,t])=>t.roles.includes(ME.role))
+    .map(([id,t],i)=>`<button id="tb-${id}" class="${i===0?"active":""}" onclick="show('${id}')">${t.label}</button>`).join("");
+  const first = Object.keys(TABS).find(id=>TABS[id].roles.includes(ME.role));
+  agentSel.innerHTML = (AGENTS[ME.role]||["mentor"]).map(a=>`<option>${a}</option>`).join("");
+  show(first);
+}
+function show(id) {
+  document.querySelectorAll("section[id^=tab-]").forEach(s=>s.classList.add("hidden"));
+  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+  document.getElementById("tab-"+id).classList.remove("hidden");
+  document.getElementById("tb-"+id).classList.add("active");
+  if (id==="audit") loadAudit();
+  if (id==="drafts") loadDrafts();
+  if (id==="registry") loadRegistry();
+}
+
+// ---------- Ask ----------
+async function ask() {
+  const question = q.value.trim(); if (!question) return;
+  q.value=""; askBtn.disabled = true;
+  chat.insertAdjacentHTML("afterbegin", `<div class="msg user">${esc(question)}</div>`);
+  try {
+    const d = await api("/query", {method:"POST",
+      body: JSON.stringify({question, agent_id: agentSel.value})});
+    const refusal = d.refusal_reason;
+    const claims = (d.claims||[]).map(c=>`
+      <div class="claim">${esc(c.text)}<br>
+        <span class="cid">📎 ${c.citation_ids.map(esc).join(", ")||"—"}
+        ${c.kg_node_ids.length? " · 🕸 "+c.kg_node_ids.map(esc).join(", "):""}</span></div>`).join("");
+    const gateStr = Object.entries(d.gates||{}).map(([g,v])=>
+      `<span class="badge ${v.allowed?"b-ok":"b-fail"}">${g}: ${v.allowed?"pass":"stop"}</span>`).join(" ");
+    chat.insertAdjacentHTML("afterbegin", `
+      <div class="msg bot ${refusal?"refusal":""}">
+        ${refusal?`<span class="badge b-fail">refused: ${esc(refusal)}</span><br>`:""}
+        ${esc(d.answer_markdown).replace(/\n/g,"<br>")}
+        ${claims?`<div class="claims"><b style="font-size:12.5px">Claims & citations</b>${claims}</div>`:""}
+        <div class="meta">
+          <span>⏱ ${d.latency_ms} ms</span><span>mode: ${esc(d.compose_mode)}</span>
+          <span>lang: ${esc(d.language)}</span><span>manifest: ${esc(d.index_manifest_id)}</span>
+          <span>${gateStr}</span>
+          <span>
+            <a href="#" onclick="feedback('${d.interaction_id}','up',this);return false">👍</a>
+            <a href="#" onclick="feedback('${d.interaction_id}','down',this);return false">👎</a>
+          </span>
+        </div>
+      </div>`);
+    LAST_Q[d.interaction_id] = {question, preview: (d.answer_markdown||"").slice(0,300)};
+  } catch(e) {
+    chat.insertAdjacentHTML("afterbegin", `<div class="msg bot refusal">⛔ ${esc(e.message)}</div>`);
+  }
+  askBtn.disabled = false;
+}
+
+const LAST_Q = {};
+async function feedback(id, verdict, el) {
+  const ctx = LAST_Q[id] || {};
+  try {
+    const d = await api("/feedback", {method:"POST", body: JSON.stringify(
+      {interaction_id:id, verdict, question:ctx.question||"", answer_preview:ctx.preview||""})});
+    el.parentElement.innerHTML = verdict==="down" && d.queued_for_eval
+      ? "✅ queued for eval review" : "✅ thanks";
+  } catch(e){ alert(e.message); }
+}
+
+// ---------- Content QA ----------
+async function coverage() {
+  try {
+    const d = await api("/contentqa/coverage", {method:"POST",
+      body: JSON.stringify({course_id: covCourse.value, qp_code: covQp.value})});
+    covOut.innerHTML = `<div class="msg bot">
+      <b>${esc(d.verdict)}</b>
+      <span class="badge ${d.declared_coverage?"b-ok":"b-fail"}">declared: ${d.declared_coverage}</span>
+      <table><tr><th>NOS</th><th>title</th><th>status</th><th>evidence</th></tr>
+      ${[...d.covered.map(n=>[n,"covered"]),...d.gaps.map(n=>[n,"GAP"])].map(([n,s])=>
+        `<tr><td>${esc(n.nos_code)}</td><td>${esc(n.title)}</td>
+         <td><span class="badge ${s==="covered"?"b-ok":"b-fail"}">${s}</span></td>
+         <td class="hint" style="font-family:monospace;font-size:11px">${n.evidence_chunks.map(esc).join("<br>")||"—"}</td></tr>`).join("")}
+      </table><div class="hint" style="margin-top:6px">${esc(d.note)}</div></div>`;
+  } catch(e){ covOut.innerHTML = `<div class="msg bot refusal">⛔ ${esc(e.message)}</div>`; }
+}
+async function draftItems() {
+  try {
+    const d = await api("/contentqa/items", {method:"POST", body: JSON.stringify(
+      {nos_code:itemNos.value, count:+itemCount.value, bloom_max:+itemBloom.value})});
+    itemsOut.innerHTML = `<div class="msg bot"><span class="hint">${esc(d.note)} · mode: ${esc(d.compose_mode)}</span>
+      ${d.items.map(it=>`<div class="claim">${esc(it.text)}<br>
+        <span class="cid">${esc(it.qp_code)} · ${esc(it.nos_code)} · Bloom ${it.bloom_level} (${esc(it.bloom_label)})</span>
+        <span class="badge b-pend">pending review</span></div>`).join("")}</div>`;
+  } catch(e){ itemsOut.innerHTML = `<div class="msg bot refusal">⛔ ${esc(e.message)}</div>`; }
+}
+
+// ---------- Analytics ----------
+async function analytics() {
+  const question = aq.value.trim(); if (!question) return;
+  try {
+    const d = await api("/copilot/analytics", {method:"POST", body: JSON.stringify({question})});
+    const cols = d.rows.length ? Object.keys(d.rows[0]) : [];
+    aout.innerHTML = `
+      <div class="msg bot"><b>${esc(d.template)}</b> · scope: <b>${esc(d.scope.scope)}</b><br><br>
+      ${esc(d.answer)?.replace(/\n/g,"<br>")}
+      ${cols.length?`<table><tr>${cols.map(c=>`<th>${esc(c)}</th>`).join("")}</tr>
+        ${d.rows.map(r=>`<tr>${cols.map(c=>`<td>${esc(r[c])}</td>`).join("")}</tr>`).join("")}</table>`:""}
+      <details style="margin-top:8px"><summary class="hint">SQL executed (reproducible)</summary><pre>${esc(d.sql)}</pre></details>
+      </div>`;
+  } catch(e){ aout.innerHTML = `<div class="msg bot refusal">⛔ ${esc(e.message)}</div>`; }
+}
+
+// ---------- Drafts ----------
+async function makeDraft() {
+  try { await api("/copilot/draft-note", {method:"POST",
+        body: JSON.stringify({subject: dsubject.value||"Monthly scheme status"})});
+        loadDrafts(); } catch(e){ alert(e.message); }
+}
+async function loadDrafts() {
+  try {
+    const d = await api("/copilot/draft-notes");
+    drafts.innerHTML = d.drafts.sort((a,b)=>b.created_at.localeCompare(a.created_at)).map(n=>`
+      <div class="msg bot">
+        <b>${esc(n.subject)}</b>
+        <span class="badge ${n.review_status==="pending"?"b-pend":n.review_status==="approved"?"b-ok":"b-fail"}">${n.review_status}</span>
+        <span class="hint">· ${esc(n.draft_id)} · by ${esc(n.created_by)} · ${esc(n.created_at)}</span>
+        <div class="draft-body">${esc(n.body_markdown)}</div>
+        ${n.review_status==="pending"?`
+          <div class="row" style="margin-top:8px">
+            <button class="act" onclick="decide('${n.draft_id}','approved')">Approve</button>
+            <button class="act danger" onclick="decide('${n.draft_id}','rejected')">Reject</button>
+          </div>`:`<div class="hint">decided by ${esc(n.decided_by)} at ${esc(n.decided_at)}</div>`}
+      </div>`).join("") || "<div class='hint'>No drafts yet.</div>";
+  } catch(e){ drafts.innerHTML = `<div class="msg bot refusal">⛔ ${esc(e.message)}</div>`; }
+}
+async function decide(id, decision) {
+  try { await api(`/copilot/draft-notes/${id}/decision`, {method:"POST",
+        body: JSON.stringify({decision})}); loadDrafts(); } catch(e){ alert(e.message); }
+}
+
+// ---------- Audit ----------
+async function loadAudit() {
+  try {
+    const d = await api("/audit?limit=40");
+    const ok = d.chain && d.chain.ok;
+    chainBadge.innerHTML = `<span class="badge ${ok?"b-ok":"b-fail"}">chain ${ok?"verified ✓":"BROKEN ✗"}</span>`;
+    audit.innerHTML = `<table><tr><th>#</th><th>time</th><th>actor</th><th>action</th><th>detail</th><th>hash</th></tr>
+      ${d.events.map(e=>`<tr><td>${e.entryNo}</td><td>${esc(e.ts)}</td><td>${esc(e.actor)}</td>
+        <td>${esc(e.action)}</td><td class="hint">${esc(JSON.stringify(e.resource))}</td>
+        <td class="cid" style="font-family:monospace;font-size:11px">${esc((e.thisHash||"").slice(0,18))}…</td></tr>`).join("")}
+      </table>`;
+  } catch(e){ audit.innerHTML = `<div class="msg bot refusal">⛔ ${esc(e.message)}</div>`; }
+}
+
+// ---------- Registry ----------
+async function loadRegistry() {
+  try {
+    const d = await api("/registry");
+    registry.innerHTML = `
+      <p class="hint">Current manifest: <b>${esc(d.current_manifest)}</b></p>
+      <table><tr><th>manifest</th><th>embedding</th><th>docs</th><th>chunks</th><th>corpus hash</th><th>built</th></tr>
+      ${d.manifests.map(m=>`<tr><td>${esc(m.manifest_id)}</td><td>${esc(m.embedding_model)}</td>
+        <td>${m.doc_count}</td><td>${m.chunk_count}</td>
+        <td style="font-family:monospace;font-size:11px">${esc(m.corpus_snapshot_hash.slice(0,26))}…</td>
+        <td>${esc(m.built_at)}</td></tr>`).join("")}</table>
+      ${d.kg_releases.length?`<h3 style="margin-top:16px">KG releases</h3>
+      <table><tr><th>tag</th><th>content hash</th><th>loaded</th></tr>
+      ${d.kg_releases.map(k=>`<tr><td>${esc(k.tag)}</td>
+        <td style="font-family:monospace;font-size:11px">${esc(k.content_hash.slice(0,26))}…</td>
+        <td>${esc(k.loaded_at)}</td></tr>`).join("")}</table>`:
+      "<p class='hint'>No KG releases yet — run backend/substrate/kg/loader.py with Neo4j up.</p>"}`;
+  } catch(e){ registry.innerHTML = `<div class="msg bot refusal">⛔ ${esc(e.message)}</div>`; }
+}
+
+initLogin();
+if (TOKEN && ME) boot();
+</script>
+</body>
+</html>

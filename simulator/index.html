@@ -1,0 +1,2241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Government Services Assistant</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0d1117; min-height: 100vh; overflow-x: auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; }
+#empty-hint { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 5; transition: opacity 0.4s; }
+#empty-hint .hint-inner { text-align: center; color: rgba(255,255,255,0.18); }
+#empty-hint .hint-phone { font-size: 72px; margin-bottom: 16px; }
+#empty-hint h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+#empty-hint p { font-size: 14px; }
+#empty-hint strong { color: rgba(255,255,255,0.35); }
+#status-pill { position: fixed; top: 12px; left: 12px; z-index: 1000; background: rgba(255,255,255,0.08); color: #ddd; font-family: monospace; font-size: 11px; padding: 6px 10px; border-radius: 14px; display: flex; align-items: center; gap: 8px; }
+#status-dot { width: 8px; height: 8px; border-radius: 50%; background: #999; transition: background 0.3s; }
+#status-dot.live { background: #25D366; box-shadow: 0 0 6px #25D366; }
+#status-dot.mock { background: #fbbf24; box-shadow: 0 0 6px #fbbf24; }
+#status-dot.offline { background: #ef4444; }
+#phones-container { display: flex; flex-direction: row; align-items: center; gap: 28px; padding: 32px 40px 100px; min-height: 100vh; width: max-content; }
+.phone-wrapper { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; animation: phoneIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes phoneIn { from { opacity: 0; transform: scale(0.75) translateY(30px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.phone-frame { width: 375px; height: 768px; background: #111; border-radius: 52px; padding: 14px; position: relative; box-shadow: 0 0 0 1.5px #2a2a2a, 0 0 0 3px #1a1a1a, 0 30px 80px rgba(0,0,0,0.85), inset 0 0 0 1px #333; }
+.phone-frame::before { content: ''; position: absolute; right: -4px; top: 120px; width: 4px; height: 60px; background: #2a2a2a; border-radius: 0 3px 3px 0; box-shadow: 0 80px 0 #2a2a2a, 0 -80px 0 #2a2a2a; }
+.phone-screen { width: 100%; height: 100%; border-radius: 40px; overflow: hidden; background: #fff; display: flex; flex-direction: column; position: relative; }
+.phone-screen::before { content: ''; position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 110px; height: 26px; background: #000; border-radius: 0 0 18px 18px; z-index: 20; }
+.status-bar { height: 46px; background: #075E54; display: flex; align-items: flex-end; padding: 0 20px 7px; justify-content: space-between; flex-shrink: 0; z-index: 10; }
+.status-time { color: #fff; font-size: 13px; font-weight: 700; letter-spacing: 0.3px; }
+.status-icons { display: flex; align-items: center; gap: 5px; }
+.screen-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+
+.onboarding-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 28px; background: #fff; overflow-y: auto; }
+.wa-logo-circle { width: 88px; height: 88px; background: linear-gradient(135deg, #25D366, #128C7E); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 42px; box-shadow: 0 8px 24px rgba(37,211,102,0.35); margin-bottom: 24px; }
+.onboarding-wrap h2 { font-size: 21px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; text-align: center; }
+.onboarding-wrap .sub { font-size: 13px; color: #777; text-align: center; line-height: 1.6; margin-bottom: 32px; }
+.phone-input-row { width: 100%; display: flex; align-items: center; border-bottom: 2px solid #25D366; margin-bottom: 28px; padding-bottom: 4px; }
+.country-code { font-size: 15px; font-weight: 700; color: #333; padding-right: 12px; border-right: 1px solid #e0e0e0; margin-right: 12px; white-space: nowrap; }
+.phone-input-row input { flex: 1; border: none; outline: none; font-size: 17px; color: #1a1a1a; letter-spacing: 2px; background: transparent; }
+.btn-next { background: linear-gradient(135deg, #25D366, #128C7E); color: #fff; border: none; padding: 14px 44px; border-radius: 30px; font-size: 15px; font-weight: 700; cursor: pointer; letter-spacing: 1px; box-shadow: 0 6px 20px rgba(37,211,102,0.4); transition: all 0.2s; width: 100%; }
+.btn-next:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(37,211,102,0.5); }
+.btn-next:disabled { background: #e0e0e0; color: #aaa; box-shadow: none; cursor: default; transform: none; }
+.tos-note { font-size: 11px; color: #bbb; text-align: center; margin-top: 18px; line-height: 1.5; }
+
+.chatlist-wrap { flex: 1; display: flex; flex-direction: column; background: #fff; overflow: hidden; }
+.wa-header { background: #075E54; padding: 10px 16px 12px; display: flex; align-items: flex-end; justify-content: space-between; flex-shrink: 0; }
+.wa-header-left .wa-title { font-size: 21px; font-weight: 700; color: #fff; letter-spacing: 0.3px; }
+.wa-header-left .wa-num { font-size: 11px; color: rgba(255,255,255,0.65); margin-top: 1px; font-family: monospace; letter-spacing: 1px; }
+/* Phase 6d — single settings button replaces the prior two action buttons.
+   The state chip sits inline next to "WhatsApp" so the citizen can see
+   their state at a glance without taking up extra header space. */
+.wa-settings-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); color: white; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; transition: background 0.15s; }
+.wa-settings-btn:hover { background: rgba(255,255,255,0.22); }
+.wa-state-chip { display: inline-block; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; margin-left: 8px; vertical-align: middle; }
+/* Settings menu */
+.wa-settings-menu { position: absolute; top: 56px; right: 12px; background: white; border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,0.25); min-width: 230px; padding: 6px 0; z-index: 70; overflow: hidden; }
+.wa-settings-menu .menu-item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; font-size: 14px; color: #1F3864; transition: background 0.12s; }
+.wa-settings-menu .menu-item:hover { background: #f0fdf4; }
+.wa-settings-menu .menu-item:active { background: #e0f7e6; }
+.wa-settings-menu .menu-item .icon { font-size: 18px; width: 24px; text-align: center; }
+.wa-settings-menu .menu-item .sub { display: block; font-size: 11px; color: #6b7280; font-weight: 400; margin-top: 1px; }
+.wa-settings-menu .menu-item .main { font-weight: 600; line-height: 1.2; }
+.wa-settings-menu .divider { height: 1px; background: #f3f4f6; margin: 4px 0; }
+.wa-settings-backdrop { position: absolute; inset: 0; z-index: 65; }
+.lang-pill { display:inline-block; font-size:10px; padding:1px 6px; border-radius:8px; background:rgba(0,131,143,0.12); color:#00696F; margin-left:4px; }
+.state-overlay { position:absolute; inset:0; background:rgba(0,0,0,0.55); z-index:50; display:flex; align-items:center; justify-content:center; padding:18px; }
+.state-modal { background:white; border-radius:14px; padding:14px; max-width:300px; width:100%; max-height:80%; overflow-y:auto; box-shadow:0 8px 24px rgba(0,0,0,0.25); }
+.state-modal h3 { margin:0 0 4px; font-size:16px; color:#075E54; }
+.state-modal .sub { font-size:11px; color:#6b7280; margin-bottom:10px; }
+.state-row { display:flex; align-items:center; gap:8px; padding:8px 6px; border-radius:6px; cursor:pointer; font-size:13px; border-bottom:1px solid #f3f4f6; }
+.state-row:hover { background:#f0fdf4; }
+.state-row .em { font-size:18px; }
+.state-row .code { font-size:11px; color:#6b7280; margin-left:auto; font-family:monospace; }
+.md-action:hover { background: #f9fafb !important; transform: translateY(-1px); transition: all 0.15s; }
+.search-wrap { padding: 8px 12px; background: #f0f2f5; flex-shrink: 0; }
+.search-wrap input { width: 100%; padding: 9px 16px; border-radius: 20px; border: none; background: #fff; font-size: 14px; outline: none; color: #333; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.chat-list { flex: 1; overflow-y: auto; background: #fff; }
+.chat-item { display: flex; align-items: center; padding: 11px 16px; cursor: pointer; border-bottom: 1px solid #f0f2f5; transition: background 0.1s; }
+.chat-item:hover { background: #f5f5f5; }
+.ci-avatar { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; margin-right: 14px; }
+.ci-body { flex: 1; min-width: 0; }
+.ci-row1 { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+.ci-name { font-size: 15px; font-weight: 600; color: #1a1a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 195px; }
+.ci-time { font-size: 12px; color: #aaa; flex-shrink: 0; }
+.ci-time.has-unread { color: #25D366; font-weight: 600; }
+.ci-row2 { display: flex; justify-content: space-between; align-items: center; }
+.ci-preview { font-size: 13px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 215px; }
+.unread-pill { min-width: 21px; height: 21px; background: #25D366; color: #fff; border-radius: 11px; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; padding: 0 5px; flex-shrink: 0; }
+.pin-badge { font-size: 9px; color: #aaa; margin-left: 4px; }
+
+.chat-wrap { flex: 1; display: flex; flex-direction: column; background: #ECE5DD; overflow: hidden; }
+.chat-header { background: #075E54; padding: 8px 10px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.back-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; padding: 4px 6px; display: flex; align-items: center; opacity: 0.9; flex-shrink: 0; }
+.ch-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.ch-info { flex: 1; }
+.ch-name { color: #fff; font-size: 15px; font-weight: 600; }
+.ch-status { color: rgba(255,255,255,0.7); font-size: 12px; margin-top: 1px; }
+.ch-actions { display: flex; gap: 8px; align-items: center; }
+.ch-call-btn { background: rgba(255,255,255,0.18); color: #fff; border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+.ch-call-btn:hover { background: rgba(255,255,255,0.35); }
+.messages-area { flex: 1; overflow-y: auto; padding: 10px 10px 6px; display: flex; flex-direction: column; gap: 3px; background-color: #ECE5DD; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ccircle cx='40' cy='40' r='1.5' fill='%23d4c9be' opacity='0.5'/%3E%3C/svg%3E"); }
+.date-sep { text-align: center; margin: 8px 0 6px; flex-shrink: 0; }
+.date-sep span { background: rgba(255,255,255,0.85); border-radius: 8px; padding: 4px 14px; font-size: 12px; color: #777; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+.msg-bubble { max-width: 78%; padding: 7px 11px 4px; border-radius: 8px; font-size: 14px; line-height: 1.45; position: relative; word-wrap: break-word; flex-shrink: 0; animation: msgIn 0.2s ease-out; }
+@keyframes msgIn { from { opacity: 0; transform: scale(0.9) translateY(4px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.msg-bubble.sent { background: #DCF8C6; align-self: flex-end; border-bottom-right-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.12); }
+.msg-bubble.received { background: #fff; align-self: flex-start; border-bottom-left-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+.msg-bubble.system-event { background: rgba(255,255,255,0.7); align-self: center; font-size: 12px; color: #888; max-width: 85%; text-align: center; }
+.msg-text { white-space: pre-wrap; }
+.msg-text .msg-link { color: #0b66c3; text-decoration: underline; word-break: break-all; }
+.msg-meta { display: flex; align-items: center; justify-content: flex-end; gap: 3px; margin-top: 3px; font-size: 11px; color: #aaa; }
+.cite-strip { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(0,0,0,0.08); }
+.cite-chip { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 10px; background: #eff6ff; color: #1F3864; text-decoration: none; border: 1px solid #c7dafd; line-height: 1.4; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+a.cite-chip:hover { background: #dbeafe; }
+.cite-low { font-size: 10px; padding: 2px 7px; border-radius: 10px; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.msg-ticks { color: #53bdeb; font-size: 13px; line-height: 1; }
+.lang-badge { font-size: 9px; color: #888; background: rgba(0,0,0,0.06); padding: 1px 6px; border-radius: 8px; margin-left: 4px; text-transform: uppercase; }
+
+.voice-wrap { display: flex; align-items: center; gap: 10px; min-width: 180px; }
+.voice-play { width: 34px; height: 34px; border-radius: 50%; background: #075E54; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; flex-shrink: 0; border: none; }
+.voice-waveform { flex: 1; height: 26px; display: flex; align-items: center; gap: 2px; }
+.voice-waveform span { display: inline-block; width: 3px; border-radius: 2px; flex-shrink: 0; }
+.msg-bubble.sent .voice-waveform span { background: #34b7f1; }
+.msg-bubble.received .voice-waveform span { background: #aaa; }
+.voice-dur { font-size: 12px; color: #777; flex-shrink: 0; }
+.voice-transcript { margin-top: 6px; font-size: 12px; color: #555; font-style: italic; padding-top: 5px; border-top: 1px solid rgba(0,0,0,0.06); }
+
+.media-bubble { padding: 5px; }
+.media-img { max-width: 100%; max-height: 200px; border-radius: 6px; display: block; object-fit: cover; cursor: pointer; }
+.media-caption { font-size: 11px; color: #666; padding: 3px 4px 0; }
+.media-doc { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 8px 8px 4px; }
+.media-doc-icon { font-size: 24px; line-height: 1; }
+.media-doc-name { font-size: 12px; font-weight: 700; color: #1f2937; word-break: break-word; }
+.media-doc-link { font-size: 11px; color: #2563eb; text-decoration: none; }
+.media-doc-link:hover { text-decoration: underline; }
+
+.tool-card { background: linear-gradient(180deg, #fff8e1 0%, #fff3c4 100%); border: 1px solid #ffdf80; border-radius: 12px; padding: 10px 12px; font-family: monospace; font-size: 11px; color: #555; max-width: 88%; align-self: flex-start; margin: 4px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
+.tool-card .tc-header { display: flex; align-items: center; gap: 6px; font-weight: 700; color: #6a4400; margin-bottom: 6px; font-size: 12px; }
+.tool-card .tc-row { padding: 1px 0; word-break: break-all; }
+.tool-card .tc-key { color: #888; }
+.tool-card.vision { background: linear-gradient(180deg, #e1f5fe 0%, #b3e5fc 100%); border-color: #4fc3f7; }
+.tool-card.vision .tc-header { color: #01579b; }
+
+.chat-input-area { padding: 7px 8px; background: #f0f2f5; display: flex; align-items: flex-end; gap: 7px; flex-shrink: 0; }
+.ib-side-btn { background: none; border: none; font-size: 22px; cursor: pointer; color: #666; padding: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.ib-side-btn:hover { color: #444; }
+.input-box-wrap { flex: 1; background: #fff; border-radius: 22px; padding: 8px 14px; display: flex; align-items: flex-end; min-height: 44px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.chat-textarea { flex: 1; border: none; outline: none; font-size: 15px; color: #1a1a1a; resize: none; background: transparent; max-height: 100px; line-height: 1.45; font-family: inherit; }
+.action-fab { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #25D366, #128C7E); color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; box-shadow: 0 3px 12px rgba(37,211,102,0.45); transition: all 0.2s; user-select: none; }
+.action-fab.recording { background: linear-gradient(135deg, #f44336, #c62828); animation: recPulse 1s infinite; }
+@keyframes recPulse { 0%,100% { box-shadow: 0 3px 12px rgba(244,67,54,0.5); } 50% { box-shadow: 0 3px 22px rgba(244,67,54,0.8); transform: scale(1.06); } }
+.rec-banner { position: absolute; bottom: 60px; left: 10px; right: 10px; background: rgba(244,67,54,0.95); color: #fff; padding: 8px 14px; border-radius: 12px; text-align: center; font-size: 12px; font-weight: 600; z-index: 50; }
+
+.attach-menu { position: absolute; bottom: 62px; left: 8px; background: #fff; border-radius: 16px; padding: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; box-shadow: 0 8px 28px rgba(0,0,0,0.18); z-index: 50; animation: popUp 0.2s ease-out; min-width: 270px; }
+@keyframes popUp { from { opacity: 0; transform: scale(0.9) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.attach-opt { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 6px 2px; border-radius: 10px; transition: background 0.15s; border: none; background: none; }
+.attach-opt:hover { background: #f5f5f5; }
+.attach-opt-icon { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.attach-opt span { font-size: 9px; color: #555; font-weight: 600; }
+
+.typing-indicator { display: flex; gap: 4px; align-items: center; padding: 4px 2px; }
+.typing-indicator span { width: 7px; height: 7px; background: #bbb; border-radius: 50%; animation: typingBounce 1.1s infinite ease-in-out; }
+.typing-indicator span:nth-child(2) { animation-delay: 0.18s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes typingBounce { 0%, 80%, 100% { transform: translateY(0); opacity: 0.5; } 40% { transform: translateY(-5px); opacity: 1; } }
+
+.notif-toast { position: absolute; top: 50px; left: 10px; right: 10px; background: #1f2c34; color: #fff; border-radius: 14px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; z-index: 200; box-shadow: 0 6px 20px rgba(0,0,0,0.4); cursor: pointer; animation: toastIn 0.3s ease-out forwards; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(-8px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.notif-toast.hiding { animation: toastOut 0.3s ease-in forwards; }
+@keyframes toastOut { to { opacity: 0; transform: translateY(-8px) scale(0.95); } }
+.toast-icon { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.toast-body { flex: 1; min-width: 0; }
+.toast-name { font-size: 13px; font-weight: 700; }
+.toast-msg { font-size: 12px; color: rgba(255,255,255,0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.consent-modal-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.55); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; animation: toastIn 0.2s; border-radius: inherit; }
+.consent-modal { background: #fff; border-radius: 16px; padding: 18px 18px 14px; width: 100%; box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
+.consent-modal h3 { font-size: 15px; color: #075E54; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.consent-modal .cm-scope { font-size: 11px; color: #888; margin-bottom: 12px; font-family: monospace; background: #f4f4f4; padding: 3px 8px; border-radius: 6px; display: inline-block; }
+.consent-modal .cm-purpose { font-size: 13px; color: #333; line-height: 1.5; margin-bottom: 14px; }
+.consent-modal .cm-buttons { display: flex; gap: 10px; }
+.consent-modal button { flex: 1; padding: 10px; border-radius: 22px; border: none; cursor: pointer; font-size: 13px; font-weight: 700; }
+.consent-modal .btn-allow { background: linear-gradient(135deg, #25D366, #128C7E); color: #fff; }
+.consent-modal .btn-deny { background: #f0f0f0; color: #666; }
+
+.coord-strip { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-bottom: 1px solid #f59e0b; padding: 6px 10px; font-size: 11px; color: #78350f; }
+.coord-strip .cs-label { font-weight: 700; margin-bottom: 4px; }
+.coord-strip .cs-track { display: flex; align-items: center; gap: 4px; }
+.coord-strip .cs-dot { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: #fff; color: #92400e; border: 1px solid #f59e0b; font-weight: 700; font-size: 11px; }
+.coord-strip .cs-dot.done { background: #16a34a; color: #fff; border-color: #16a34a; }
+.coord-strip .cs-dot.curr { background: #f59e0b; color: #fff; border-color: #f59e0b; animation: recPulse 1.5s infinite; }
+.coord-strip .cs-sep { color: #d97706; }
+
+.call-overlay { position: absolute; inset: 0; background: linear-gradient(160deg, #075E54 0%, #054640 100%); z-index: 600; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 50px 24px 36px; border-radius: inherit; animation: toastIn 0.3s ease-out; }
+.call-avatar-big { width: 110px; height: 110px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 56px; background: rgba(255,255,255,0.18); box-shadow: 0 0 0 14px rgba(255,255,255,0.07); }
+.call-info { text-align: center; color: #fff; }
+.call-info .call-name { font-size: 22px; font-weight: 700; margin-top: 20px; }
+.call-info .call-status { font-size: 13px; opacity: 0.75; margin-top: 6px; font-family: monospace; }
+.call-info .call-mode { font-size: 10px; opacity: 0.55; margin-top: 8px; text-transform: uppercase; letter-spacing: 1px; }
+/* Phase 6d — call transcript HIDDEN by default to give the call a natural
+   phone-call UI. Only audio-error / autoplay-blocked prompts are surfaced
+   (they get the .system-prompt modifier). */
+.call-transcript { position: absolute; left: 16px; right: 16px; top: 320px; bottom: 200px; overflow-y: auto; padding: 4px 4px 12px; pointer-events: none; }
+.call-transcript-line { display: none; }
+.call-transcript-line.system-prompt { display: block; background: rgba(244,67,54,0.25); border: 1px solid rgba(244,67,54,0.5); color: #fff; border-radius: 10px; padding: 6px 10px; margin-bottom: 6px; font-size: 11px; line-height: 1.4; max-width: 85%; pointer-events: auto; cursor: pointer; }
+.call-transcript-line.system-prompt .agent-prefix { display: none; }
+.call-transcript-line.user { background: rgba(37,211,102,0.4); margin-left: auto; }
+.call-transcript-line.bot .agent-prefix { display: block; font-size: 10px; font-weight: 700; opacity: 0.6; margin-bottom: 2px; }
+.call-actions { display: flex; gap: 24px; align-items: center; justify-content: center; }
+.call-btn { width: 60px; height: 60px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; }
+.call-btn.end { background: #e53935; box-shadow: 0 6px 18px rgba(229,57,53,0.55); }
+.call-btn.ptt { background: linear-gradient(135deg, #25D366, #128C7E); width: 78px; height: 78px; font-size: 28px; box-shadow: 0 8px 20px rgba(37,211,102,0.5); user-select: none; transition: all 0.15s; }
+.call-btn.ptt.active { background: linear-gradient(135deg, #f44336, #c62828); transform: scale(1.08); }
+.call-btn.mute { background: rgba(255,255,255,0.2); }
+.call-hint { color: rgba(255,255,255,0.65); font-size: 11px; text-align: center; padding-bottom: 8px; }
+.call-vad { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 10px; }
+.vad-status { color: #fff; font-size: 12px; font-weight: 600; opacity: 0.9; min-height: 18px; }
+.vad-bars { display: flex; align-items: center; justify-content: center; gap: 3px; height: 30px; }
+.vad-bars span { display: inline-block; width: 4px; height: 4px; background: linear-gradient(180deg, #25D366, #128C7E); border-radius: 2px; transition: height 0.08s linear; }
+.call-btn.mute.active { background: linear-gradient(135deg, #f44336, #c62828); color: #fff; }
+
+#add-btn { position: fixed; bottom: 28px; right: 28px; width: 62px; height: 62px; border-radius: 50%; background: linear-gradient(135deg, #25D366, #128C7E); color: #fff; font-size: 34px; font-weight: 300; border: none; cursor: pointer; z-index: 900; box-shadow: 0 6px 24px rgba(37,211,102,0.55); display: flex; align-items: center; justify-content: center; transition: all 0.25s; line-height: 1; }
+#add-btn:hover { transform: scale(1.12) rotate(90deg); }
+.phone-label { margin-top: 14px; display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.07); border-radius: 20px; padding: 5px 8px 5px 14px; font-size: 12px; color: rgba(255,255,255,0.45); font-family: monospace; letter-spacing: 1px; }
+.phone-del { background: rgba(244,67,54,0.18); color: #ff6b6b; border: none; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; font-size: 14px; line-height: 1; display: flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0; transition: all 0.15s; font-family: sans-serif; }
+.phone-del:hover { background: #e53935; color: #fff; transform: scale(1.12); }
+</style>
+</head>
+<body>
+
+<div id="status-pill">
+  <span id="status-dot"></span>
+  <span id="status-text">Connecting…</span>
+</div>
+
+<div id="empty-hint">
+  <div class="hint-inner">
+    <div class="hint-phone">📱</div>
+    <h2>Government Services Assistant</h2>
+    <p>Chat, call, or upload a document to get help from any department. Press <strong>+</strong> to start.</p>
+  </div>
+</div>
+
+<div id="phones-container"></div>
+<button id="add-btn" onclick="addPhone()" title="Add a new phone">+</button>
+
+<!-- LiveKit browser SDK — used for the real-time streaming voice pipeline.
+     Loads a global `LivekitClient`. If it fails to load (offline), the app
+     silently keeps using the mock press-to-talk path. -->
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2/dist/livekit-client.umd.min.js"></script>
+
+<script>
+const BACKEND_BASE = window.location.origin || 'http://127.0.0.1:8000';
+const API = `${BACKEND_BASE}/api/v1`;
+const WS_URL = (cid) => {
+  const proto = BACKEND_BASE.startsWith('https') ? 'wss' : 'ws';
+  return `${proto}://${new URL(BACKEND_BASE).host}/ws?citizenId=${cid}`;
+};
+
+async function pollHealth() {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 6000);   // don't hang the pill
+  try {
+    const r = await fetch(`${BACKEND_BASE}/api/health`, { signal: ctrl.signal });
+    const j = await r.json();
+    const dot = document.getElementById('status-dot');
+    const txt = document.getElementById('status-text');
+    dot.className = j.mode === 'live' ? 'live' : 'mock';
+    txt.textContent = j.mode === 'live' ? 'Government Services · online' : 'Demo mode';
+  } catch (e) {
+    document.getElementById('status-dot').className = 'offline';
+    document.getElementById('status-text').textContent =
+      (e.name === 'AbortError') ? 'Reconnecting…' : 'Offline';
+  } finally { clearTimeout(t); }
+}
+pollHealth();
+setInterval(pollHealth, 5000);
+
+
+/* =====================================================================
+   Audio conversion: browser webm/opus → 16 kHz mono WAV.
+
+   Browsers (Chrome on Windows in particular) record via MediaRecorder
+   as audio/webm;codecs=opus. Sarvam Saaras rejects that — it only
+   accepts wav / mp3 / pcm. We decode the recorded blob in the browser
+   via Web Audio API, downsample to 16 kHz mono, and re-encode as a
+   16-bit PCM WAV. Pure JS — no ffmpeg dependency on the server.
+   ===================================================================== */
+
+async function blobToWav(blob, targetSampleRate = 16000) {
+  const arrayBuffer = await blob.arrayBuffer();
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  const audioCtx = new Ctx();
+  try {
+    const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+    // Mix to mono and resample to targetSampleRate
+    const monoData = mixDownToMono(decoded);
+    const resampled = resampleLinear(monoData, decoded.sampleRate, targetSampleRate);
+    return encodeWav(resampled, targetSampleRate, 1);
+  } finally {
+    try { audioCtx.close(); } catch (e) {}
+  }
+}
+
+function mixDownToMono(audioBuffer) {
+  const ch = audioBuffer.numberOfChannels;
+  const len = audioBuffer.length;
+  if (ch === 1) return audioBuffer.getChannelData(0);
+  const out = new Float32Array(len);
+  for (let c = 0; c < ch; c++) {
+    const data = audioBuffer.getChannelData(c);
+    for (let i = 0; i < len; i++) out[i] += data[i] / ch;
+  }
+  return out;
+}
+
+function resampleLinear(samples, fromRate, toRate) {
+  if (fromRate === toRate) return samples;
+  const ratio = fromRate / toRate;
+  const newLen = Math.round(samples.length / ratio);
+  const out = new Float32Array(newLen);
+  for (let i = 0; i < newLen; i++) {
+    const idx = i * ratio;
+    const left = Math.floor(idx);
+    const right = Math.min(left + 1, samples.length - 1);
+    const frac = idx - left;
+    out[i] = samples[left] * (1 - frac) + samples[right] * frac;
+  }
+  return out;
+}
+
+function encodeWav(float32, sampleRate, channels) {
+  const numSamples = float32.length;
+  const byteRate = sampleRate * channels * 2;
+  const dataSize = numSamples * channels * 2;
+  const buf = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buf);
+  let off = 0;
+  function writeStr(s) { for (let i = 0; i < s.length; i++) view.setUint8(off++, s.charCodeAt(i)); }
+  // RIFF header
+  writeStr('RIFF');
+  view.setUint32(off, 36 + dataSize, true); off += 4;
+  writeStr('WAVE');
+  // fmt chunk
+  writeStr('fmt ');
+  view.setUint32(off, 16, true); off += 4;       // fmt chunk size
+  view.setUint16(off, 1, true);  off += 2;       // PCM
+  view.setUint16(off, channels, true); off += 2;
+  view.setUint32(off, sampleRate, true); off += 4;
+  view.setUint32(off, byteRate, true); off += 4;
+  view.setUint16(off, channels * 2, true); off += 2;  // block align
+  view.setUint16(off, 16, true); off += 2;       // bits per sample
+  // data chunk
+  writeStr('data');
+  view.setUint32(off, dataSize, true); off += 4;
+  // 16-bit PCM samples
+  for (let i = 0; i < numSamples; i++) {
+    let s = Math.max(-1, Math.min(1, float32[i]));
+    view.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    off += 2;
+  }
+  return new Blob([buf], { type: 'audio/wav' });
+}
+
+
+class PhoneSimulator {
+  constructor(phoneId) {
+    this.id = phoneId;
+    this.phone = null;
+    this.citizenId = null;
+    this.bots = [];
+    this.curBot = null;
+    this.state = 'onboarding';
+    this.msgs = {};
+    this.unread = {};
+    this.preview = {};
+    this.ws = null;
+    this.activeServerMsgs = new Map();
+    this.mediaRecorder = null;
+    this.audioChunks = [];
+    this.recordStart = 0;
+    this.pendingConsent = null;
+    this.activeCall = null;
+    this.callTimer = null;
+    this.callRecorder = null;
+    this.callChunks = [];
+  }
+
+  $ (sel) { return document.querySelector(`#ph-${this.id} ${sel}`); }
+  now() { return new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit', hour12:true}); }
+  escHTML(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  // Phase 6g — render agent text with CLICKABLE links. Escapes HTML first
+  // (XSS-safe), then converts markdown links [label](https://…), bare URLs,
+  // and **bold** into real elements. Validation feedback: "responses don't
+  // provide clickable links" — they did, but as dead plain text.
+  richText(s) {
+    let t = this.escHTML(s);
+    // markdown links — only http(s)
+    t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener" class="msg-link">$1</a>');
+    // bare URLs not already inside an attribute (escaped text has no tags yet
+    // except the anchors we just made — so skip anything following =" )
+    t = t.replace(/(^|[\s(।])((https?:\/\/|www\.)[^\s<)]+[^\s<).,;!?।])/g,
+      (m, pre, url) => `${pre}<a href="${url.startsWith('http')?url:'https://'+url}" target="_blank" rel="noopener" class="msg-link">${url}</a>`);
+    t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    return t;
+  }
+  _fmtTime(iso) { try { return new Date(iso).toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit', hour12:true}); } catch(e) { return ''; } }
+
+  async apiFetch(path, opts = {}) {
+    // Phase 6e — time out instead of hanging forever. A wedged/stale backend
+    // process accepts the TCP connection but never replies; without a timeout
+    // the UI sits on "Connecting…" indefinitely with no clue why.
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), opts.timeoutMs || 12000);
+    let r;
+    try {
+      r = await fetch(`${API}${path}`, { ...opts, signal: ctrl.signal,
+        headers: { 'Content-Type': 'application/json', ...(opts.headers||{}) } });
+    } catch (e) {
+      throw new Error(e.name === 'AbortError'
+        ? 'Backend did not respond (timed out). Is the server running? Try restarting it.'
+        : `Cannot reach backend: ${e.message}`);
+    } finally { clearTimeout(t); }
+    if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+    return r.json();
+  }
+
+  async authInit(msisdn) {
+    const j = await this.apiFetch('/auth/init', { method:'POST', body: JSON.stringify({ msisdn }) });
+    this.citizenId = j.citizenId;
+    // Phase 6d — state + language metadata
+    this.stateCode = j.stateCode || null;
+    this.stateName = j.stateName || null;
+    this.stateEmoji = j.stateEmoji || '🇮🇳';
+    this.primaryLanguage = j.primaryLanguage || 'en-IN';
+    this.stateAutoDetected = !!j.stateAutoDetected;
+    return j;
+  }
+
+  async loadStates() {
+    if (this.statesList) return this.statesList;
+    const j = await this.apiFetch('/states');
+    this.statesList = j.states;
+    return this.statesList;
+  }
+
+  async setState(code) {
+    const j = await this.apiFetch(`/citizens/${this.citizenId}/state`, {
+      method:'POST', body: JSON.stringify({ state_code: code }),
+    });
+    this.stateCode = j.stateCode;
+    this.stateName = j.stateName;
+    this.stateEmoji = j.emoji;
+    this.primaryLanguage = j.primaryLanguage;
+    this.stateAutoDetected = false;
+    this.render();
+  }
+
+  async loadAgents() {
+    const j = await this.apiFetch('/agents');
+    this.bots = j.agents;
+    for (const b of this.bots) {
+      if (!this.msgs[b.id])   this.msgs[b.id] = [];
+      if (!this.unread[b.id]) this.unread[b.id] = 0;
+      if (!this.preview[b.id]) this.preview[b.id] = { text: b.description || 'Tap to chat', time: '' };
+    }
+  }
+
+  async loadHistory(agentId) {
+    const j = await this.apiFetch(`/citizens/${this.citizenId}/conversations/${agentId}/messages`);
+    this.msgs[agentId] = j.messages.map(m => ({
+      role:m.role, type:m.type, text:m.text,
+      time:this._fmtTime(m.timestamp), lang:m.lang, id:m.id,
+      audioUrl:m.audioUrl, mediaUrl:m.mediaUrl,
+      durationSec:m.durationSec, extra:m.extra,
+      filename:(m.extra||{}).filename, mimeType:(m.extra||{}).mime_type,
+    }));
+    if (this.msgs[agentId].length) {
+      const last = this.msgs[agentId][this.msgs[agentId].length - 1];
+      this.preview[agentId] = { text: last.text.slice(0,80), time: last.time };
+    }
+  }
+
+  async sendText(agentId, text) {
+    const clientMsgId = `c_${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
+    this._appendMsgEl({ role:'user', type:'text', text, time:this.now(), clientMsgId });
+    try {
+      await this.apiFetch(`/citizens/${this.citizenId}/conversations/${agentId}/messages`, {
+        method:'POST', body: JSON.stringify({ text, clientMsgId }),
+      });
+    } catch (e) { this._appendMsgEl({role:'system', type:'system_event', text:`Send failed: ${e.message}`, time:this.now()}); }
+  }
+
+  async sendVoice(agentId, blob, mime, durationSec) {
+    const clientMsgId = `c_${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
+    const seed = Math.random() * 20;
+    this._appendMsgEl({ role:'user', type:'voice', text:'', dur:`0:${String(Math.round(durationSec)).padStart(2,'0')}`,
+                       time:this.now(), clientMsgId, seed });
+    const fd = new FormData();
+    fd.append('audio', blob, `voice.${mime.includes('webm')?'webm':'wav'}`);
+    if (clientMsgId) fd.append('clientMsgId', clientMsgId);
+    try { const r = await fetch(`${API}/citizens/${this.citizenId}/conversations/${agentId}/voice`, { method:'POST', body: fd });
+          if (!r.ok) throw new Error(r.status); }
+    catch (e) { this._appendMsgEl({role:'system', type:'system_event', text:`Voice send failed: ${e.message}`, time:this.now()}); }
+  }
+
+  async sendDocument(agentId, file, hint_type) {
+    const clientMsgId = `c_${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
+    const url = URL.createObjectURL(file);
+    const isImage = (file.type || '').startsWith('image/');
+    this._appendMsgEl({
+      role:'user',
+      type:'media',
+      text:`[document: ${file.name}]`,
+      time:this.now(),
+      mediaUrl:url,
+      clientMsgId,
+      filename:file.name,
+      mimeType:file.type || '',
+    });
+    const fd = new FormData();
+    fd.append('document', file, file.name);
+    if (hint_type) fd.append('hint_type', hint_type);
+    if (clientMsgId) fd.append('clientMsgId', clientMsgId);
+    try { const r = await fetch(`${API}/citizens/${this.citizenId}/conversations/${agentId}/document`, { method:'POST', body: fd });
+          if (!r.ok) throw new Error(r.status); }
+    catch (e) { this._appendMsgEl({role:'system', type:'system_event', text:`Document upload failed: ${e.message}`, time:this.now()}); }
+  }
+
+  async sendImage(agentId, file, hint_type) {
+    return this.sendDocument(agentId, file, hint_type);
+  }
+
+  openWS() {
+    if (this.ws) try { this.ws.close(); } catch(e){}
+    this.ws = new WebSocket(WS_URL(this.citizenId));
+    this.ws.onmessage = (ev) => { try { this._handleWSFrame(JSON.parse(ev.data)); } catch(e){} };
+    this.ws.onclose = () => setTimeout(() => { if (this.state !== 'onboarding') this.openWS(); }, 1500);
+  }
+
+  _handleWSFrame(f) {
+    switch(f.type) {
+      case 'state_snapshot':    return;
+      case 'agent_typing':      return this._setTyping(f.agentId, f.isTyping);
+      case 'agent_token':       return this._appendToken(f);
+      case 'agent_token_reset': return this._resetTokenStream(f);
+      case 'agent_message':     return this._finalizeAgentMessage(f);
+      case 'voice_transcript':  return this._attachVoiceTranscript(f);
+      case 'broadcast':         return this._showBroadcastToast(f);
+      case 'consent_request':   return this._showConsentModal(f);
+      case 'coordinator_state': return this._showCoordProgress(f.progress);
+      case 'call_started':      return;
+      case 'call_ended':        return this._handleCallEndedFrame(f);
+    }
+  }
+
+  _setTyping(agentId, isTyping) {
+    const inThisChat = this.state === 'chat' && this.curBot && this.curBot.id === agentId;
+    if (!inThisChat) return;
+    const ma = document.getElementById(`ma-${this.id}`);
+    if (!ma) return;
+    const existing = document.getElementById(`ti-${this.id}`);
+    if (isTyping && !existing) {
+      const el = document.createElement('div');
+      el.id = `ti-${this.id}`;
+      el.className = 'msg-bubble received';
+      el.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
+      ma.appendChild(el); ma.scrollTop = ma.scrollHeight;
+    } else if (!isTyping && existing) existing.remove();
+  }
+
+  _appendToken(f) {
+    const inThisChat = this.state === 'chat' && this.curBot && this.curBot.id === f.agentId;
+    if (!inThisChat && !this.activeCall) return;
+    let entry = this.activeServerMsgs.get(f.serverMsgId);
+    if (!entry && inThisChat) {
+      const ma = document.getElementById(`ma-${this.id}`);
+      const div = document.createElement('div');
+      div.className = 'msg-bubble received';
+      div.innerHTML = `<div class="msg-text"></div><div class="msg-meta"><span>${this.now()}</span></div>`;
+      ma.appendChild(div);
+      entry = { el:div, text:'' };
+      this.activeServerMsgs.set(f.serverMsgId, entry);
+      this._setTyping(f.agentId, false);
+    }
+    if (entry) {
+      entry.text += f.delta;
+      if (entry.el) entry.el.querySelector('.msg-text').textContent = entry.text;
+      const ma = document.getElementById(`ma-${this.id}`);
+      if (ma) ma.scrollTop = 99999;
+    }
+    if (this.activeCall && this.activeCall.agentId === f.agentId) {
+      const accumulated = (entry ? entry.text : f.delta);
+      this._upsertCallTranscriptLine(f.serverMsgId, 'bot', accumulated);
+    }
+  }
+
+  // PHASE 6c — server detected reasoning chain-of-thought; reset the
+  // bubble's text and let the cleaned-up final agent_message land instead.
+  _resetTokenStream(f) {
+    const entry = this.activeServerMsgs.get(f.serverMsgId);
+    if (!entry) return;
+    entry.text = '';
+    if (entry.el) {
+      const t = entry.el.querySelector('.msg-text');
+      if (t) t.textContent = '';
+    }
+  }
+
+  _finalizeAgentMessage(f) {
+    const m = f.message;
+    this.msgs[f.agentId] = this.msgs[f.agentId] || [];
+    if (!this.msgs[f.agentId].some(x => x.id === m.id)) {
+      this.msgs[f.agentId].push({
+        id:m.id, role:m.role, type:m.type, text:m.text,
+        time:this._fmtTime(m.timestamp), lang:m.lang,
+        audioUrl:m.audioUrl, mediaUrl:m.mediaUrl, durationSec:m.durationSec, extra:m.extra,
+      });
+    }
+    this.preview[f.agentId] = { text: m.text.slice(0,80), time: this._fmtTime(m.timestamp) };
+    const inThisChat = this.state === 'chat' && this.curBot && this.curBot.id === f.agentId;
+    const entry = this.activeServerMsgs.get(m.id);
+    if (entry && entry.el && inThisChat) {
+      // PHASE 6c FIX — overwrite the streamed token text with the SERVER's
+      // final cleaned text. The orchestrator's reasoning-leak scrubber +
+      // safety scanner run AFTER streaming completes, so the streamed
+      // tokens may contain chain-of-thought / leaks that the cleaned text
+      // does NOT. We must replace, not just append.
+      const textEl = entry.el.querySelector('.msg-text');
+      // Phase 6g — final server text renders with clickable links
+      if (textEl) {
+        if (m.text) textEl.innerHTML = this.richText(m.text);
+        // else keep the streamed text as-is
+      }
+      const langBadge = m.lang && m.lang !== 'en-IN' ? ` <span class="lang-badge">${m.lang.replace('-IN','')}</span>` : '';
+      entry.el.querySelector('.msg-meta').innerHTML = `<span>${this._fmtTime(m.timestamp)}</span>${langBadge}`;
+      // PHASE 6c — citation chips from the final message
+      const cites = (m.extra && Array.isArray(m.extra.citations)) ? m.extra.citations : [];
+      if (cites.length) {
+        const existing = entry.el.querySelector('.cite-strip');
+        if (existing) existing.remove();
+        const wrap = document.createElement('div');
+        wrap.outerHTML = this._tplCitations(m.extra);
+        const tmp = document.createElement('div');
+        tmp.innerHTML = this._tplCitations(m.extra);
+        if (tmp.firstElementChild) {
+          entry.el.querySelector('.msg-meta').insertAdjacentElement('beforebegin', tmp.firstElementChild);
+        }
+      }
+      if (m.audioUrl) {
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'margin-top:4px;border-top:1px solid rgba(0,0,0,0.05);padding-top:4px;';
+        wrap.innerHTML = this._audioPlayButton(m.audioUrl);
+        entry.el.appendChild(wrap);
+        this._bindAudioButtons(entry.el);
+      }
+      this.activeServerMsgs.delete(m.id);
+    } else if (m.type === 'tool_result' && inThisChat) {
+      this._appendToolResultCard(m);
+    } else if (m.type === 'system_event' && inThisChat) {
+      this._appendMsgEl({role:'system', type:'system_event', text:m.text, time:this._fmtTime(m.timestamp)});
+    } else if (inThisChat && m.role === 'agent') {
+      // PHASE 6d FIX — no prior streaming entry, but the server dispatched a
+      // final agent_message anyway (e.g. Sarvam returned empty content and
+      // we used the persona fallback, or LLM call errored and we used the
+      // safe fallback). Render the bubble fresh so the reply doesn't
+      // silently disappear until refresh.
+      this._setTyping(f.agentId, false);
+      this._appendMsgEl({
+        id: m.id, role: m.role, type: m.type, text: m.text,
+        time: this._fmtTime(m.timestamp), lang: m.lang,
+        audioUrl: m.audioUrl, mediaUrl: m.mediaUrl,
+        durationSec: m.durationSec, extra: m.extra,
+      });
+    } else if (!inThisChat) {
+      this.unread[f.agentId] = (this.unread[f.agentId]||0) + 1;
+      const agent = this.bots.find(b => b.id === f.agentId);
+      if (agent) this._showToast(agent, m.text);
+      if (this.state === 'chatlist') this._refreshChatItem(f.agentId);
+    }
+    if (this.activeCall && this.activeCall.agentId === f.agentId && m.audioUrl) {
+      this._playCallAudio(m.audioUrl);
+      this._upsertCallTranscriptLine(m.id, 'bot', m.text, true);
+      // If TTS fell back to mock (Sarvam rejected the voice/lang/etc.),
+      // surface a visible warning. Otherwise the user just hears a chime.
+      const ex = m.extra || {};
+      if (ex.ttsMock) {
+        const errLine = `🔔 You're hearing a chime — Bulbul rejected the request.`
+          + (ex.ttsError ? `\nSarvam said: ${ex.ttsError}` : '')
+          + (ex.ttsVoice ? `\nVoice attempted: ${ex.ttsVoice}` : '');
+        this._upsertCallTranscriptLine(`ttsmock-${m.id}`, 'bot', errLine, true, true);
+      }
+    }
+  }
+
+  _attachVoiceTranscript(f) {
+    const inThisChat = this.state === 'chat' && this.curBot;
+    if (inThisChat) {
+      const ma = document.getElementById(`ma-${this.id}`);
+      if (ma) {
+        const bubbles = ma.querySelectorAll('.msg-bubble.sent');
+        const last = bubbles[bubbles.length - 1];
+        if (last && !last.querySelector('.voice-transcript') && last.querySelector('.voice-wrap')) {
+          const div = document.createElement('div');
+          div.className = 'voice-transcript';
+          div.textContent = '"' + f.transcript + '"';
+          last.appendChild(div);
+        }
+      }
+    }
+    if (this.activeCall) this._upsertCallTranscriptLine(f.messageId, 'user', f.transcript, true);
+  }
+
+  _showCoordProgress(progress) {
+    // Render a small horizontal strip under the chat header showing
+    // which step of the cross-agent flow we're on.
+    if (!progress) return;
+    const screen = document.getElementById(`ph-${this.id}`).querySelector('.phone-screen');
+    let strip = screen.querySelector('.coord-strip');
+    if (!strip) {
+      strip = document.createElement('div');
+      strip.className = 'coord-strip';
+      const header = screen.querySelector('.chat-header');
+      if (header && header.parentNode) header.parentNode.insertBefore(strip, header.nextSibling);
+      else return;
+    }
+    if (progress.completed) {
+      setTimeout(() => strip.remove(), 3500);
+    }
+    const dots = progress.steps.map((s, i) => {
+      const cls = s.done ? 'done' : (s.current ? 'curr' : '');
+      return `<span class="cs-dot ${cls}" title="${this.escHTML(s.agentId)}: ${this.escHTML(s.purpose)}">${i+1}</span>`;
+    }).join('<span class="cs-sep">→</span>');
+    strip.innerHTML = `
+      <div class="cs-label">🔄 ${this.escHTML(progress.title)} (${progress.completed?'completed':'step '+(progress.currentIdx+1)+'/'+progress.total})</div>
+      <div class="cs-track">${dots}</div>`;
+  }
+
+  _showBroadcastToast(f) {
+    const agent = this.bots.find(b => b.id === f.agentId);
+    if (!agent) return;
+    this._showToast(agent, f.body);
+    this.msgs[f.agentId] = this.msgs[f.agentId] || [];
+    this.msgs[f.agentId].push({ role:'agent', type:'text', text:f.body, time:this.now() });
+    this.preview[f.agentId] = { text:f.body.slice(0,80), time:this.now() };
+    if (this.state === 'chat' && this.curBot && this.curBot.id === f.agentId) {
+      this._appendMsgEl({role:'agent', type:'text', text:f.body, time:this.now()});
+    } else {
+      this.unread[f.agentId] = (this.unread[f.agentId]||0)+1;
+      if (this.state === 'chatlist') this._refreshChatItem(f.agentId);
+    }
+  }
+
+  _showConsentModal(f) {
+    this.pendingConsent = f;
+    const screen = document.getElementById(`ph-${this.id}`).querySelector('.phone-screen');
+    screen.querySelectorAll('.consent-modal-bg').forEach(x => x.remove());
+    const bg = document.createElement('div');
+    bg.className = 'consent-modal-bg';
+    bg.innerHTML = `
+      <div class="consent-modal">
+        <h3>🔐 Permission Required</h3>
+        <span class="cm-scope">scope: ${this.escHTML(f.scope)}</span>
+        <div class="cm-purpose">${this.escHTML(f.purpose)}</div>
+        <div class="cm-buttons">
+          <button class="btn-deny" data-decision="denied">Deny</button>
+          <button class="btn-allow" data-decision="granted">Allow</button>
+        </div>
+      </div>`;
+    bg.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-decision]');
+      if (!btn) return;
+      bg.remove();
+      try { await fetch(`${API}/consent/${f.requestId}/decide?citizenId=${this.citizenId}`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ decision: btn.dataset.decision }) }); }
+      catch (err) { this._appendMsgEl({role:'system', type:'system_event', text:`Consent error: ${err.message}`, time:this.now()}); }
+      this.pendingConsent = null;
+    });
+    screen.appendChild(bg);
+  }
+
+  async startCall() {
+    if (!this.curBot || this.activeCall) return;
+    // CRITICAL: warm audio context NOW while we're still inside the
+    // user-gesture stack (the click on the 📞 button). Chrome blocks
+    // audio.play() unless it follows a recent user gesture, and the
+    // first agent reply lands 3-8s later — too late for autoplay.
+    await this._warmAudioContext();
+    try {
+      const r = await this.apiFetch('/calls', { method:'POST',
+        body: JSON.stringify({ citizenId:this.citizenId, agentId:this.curBot.id }) });
+      this.activeCall = { callId:r.callId, agentId:r.agentId, mode:r.mode,
+                          startedAt:Date.now(), livekitUrl:r.livekitUrl, token:r.token };
+      this._renderCallScreen();
+    } catch (e) { alert('Could not start call: ' + e.message); }
+  }
+
+  async endCall() {
+    if (!this.activeCall) return;
+    const callId = this.activeCall.callId;
+    this.activeCall = null;
+    if (this.callTimer) { clearInterval(this.callTimer); this.callTimer = null; }
+    this._stopCallVAD();
+    document.querySelectorAll(`#ph-${this.id} .call-overlay`).forEach(x => x.remove());
+    try { await fetch(`${API}/calls/${callId}`, { method:'DELETE' }); } catch (e) {}
+  }
+
+  _handleCallEndedFrame(f) {
+    if (this.state === 'chat' && this.curBot && this.curBot.id === f.agentId) {
+      const ma = document.getElementById(`ma-${this.id}`);
+      if (ma) {
+        const el = document.createElement('div');
+        el.className = 'msg-bubble system-event';
+        el.style.whiteSpace = 'pre-line';
+        el.textContent = f.summaryMessage.text;
+        ma.appendChild(el); ma.scrollTop = ma.scrollHeight;
+      }
+    }
+  }
+
+  _renderCallScreen() {
+    const bot = this.curBot;
+    const screen = document.getElementById(`ph-${this.id}`).querySelector('.phone-screen');
+    screen.querySelectorAll('.call-overlay').forEach(x => x.remove());
+    const modeBadge = (this.activeCall.mode === 'livekit') ? 'LIVE · LiveKit' : 'NATURAL · listening';
+    const ov = document.createElement('div');
+    ov.className = 'call-overlay';
+    ov.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div class="call-avatar-big" style="background:${bot.bg}">${bot.emoji}</div>
+        <div class="call-info">
+          <div class="call-name">${this.escHTML(bot.name)}</div>
+          <div class="call-status" id="call-status-${this.id}">00:00</div>
+          <div class="call-mode" id="call-mode-${this.id}">${modeBadge}</div>
+        </div>
+      </div>
+      <div class="call-vad" id="call-vad-${this.id}">
+        <div class="vad-status" id="vad-status-${this.id}">Connecting microphone…</div>
+        <div class="vad-bars" id="vad-bars-${this.id}">
+          ${Array.from({length:18}).map(()=>'<span></span>').join('')}
+        </div>
+      </div>
+      <div class="call-transcript" id="call-transcript-${this.id}"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+        <div class="call-hint" id="call-hint-${this.id}">Speak naturally — the agent listens automatically</div>
+        <div class="call-actions">
+          <button class="call-btn mute" id="call-mute-${this.id}" title="Mute">🔇</button>
+          <button class="call-btn end" id="call-end-${this.id}" title="End call">📵</button>
+        </div>
+      </div>`;
+    screen.appendChild(ov);
+
+    const startedAt = this.activeCall.startedAt;
+    const statusEl = document.getElementById(`call-status-${this.id}`);
+    this.callTimer = setInterval(() => {
+      if (!this.activeCall) { clearInterval(this.callTimer); return; }
+      const s = Math.floor((Date.now() - startedAt) / 1000);
+      const mm = String(Math.floor(s/60)).padStart(2,'0');
+      const ss = String(s%60).padStart(2,'0');
+      if (this.activeCall.mode !== 'livekit' || this._lkConnected) statusEl.textContent = `${mm}:${ss}`;
+    }, 1000);
+
+    document.getElementById(`call-end-${this.id}`).addEventListener('click', () => this.endCall());
+    document.getElementById(`call-mute-${this.id}`).addEventListener('click', () => this._toggleCallMute());
+
+    // Phase 6f — LIVE streaming pipeline (Saaras v3 -> Sarvam-105B -> Bulbul v3)
+    // when LiveKit is configured; otherwise the mock press-to-talk VAD path.
+    if (this.activeCall.mode === 'livekit') {
+      this._joinLiveKit();
+    } else {
+      this._startCallVAD();
+    }
+  }
+
+  // PHASE 6d — voice activity detection driven recording
+  //
+  // No press-to-talk button. We hold the microphone open for the entire
+  // call, watch the audio energy, and automatically start a new recording
+  // segment when the citizen starts speaking + send it when they pause.
+  // The flow:
+  //   listening → (energy > threshold for ~150 ms) → recording →
+  //   (silence for ~1100 ms) → encode WAV → POST → return to listening
+  // While the agent is replying (TTS audio playing), VAD is gated off so
+  // the agent's own voice doesn't get sent back to the server.
+  async _startCallVAD() {
+    if (this._vad) this._stopCallVAD();
+    const setStatus = (text) => {
+      const el = document.getElementById(`vad-status-${this.id}`);
+      if (el) el.textContent = text;
+    };
+    const setHint = (text) => {
+      const el = document.getElementById(`call-hint-${this.id}`);
+      if (el) el.textContent = text;
+    };
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation:true, noiseSuppression:true, autoGainControl:true },
+      });
+    } catch (e) {
+      setStatus('🎤 Mic permission required');
+      setHint('Please grant microphone access and reopen the call');
+      return;
+    }
+
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = ctx.createMediaStreamSource(stream);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 1024;
+    src.connect(analyser);
+    const buf = new Uint8Array(analyser.fftSize);
+    const bars = document.querySelectorAll(`#vad-bars-${this.id} span`);
+
+    // Phase 6d voice-call VAD tuning — calibrated to reject feedback from
+    // the agent's TTS bleeding into the mic, and to reject single-frame
+    // noise spikes (door slam, throat clear).
+    //   ENERGY_ON      — energy must exceed this to count as voice
+    //   ENERGY_OFF     — sustained below this means silence
+    //   START_FRAMES   — # of consecutive above-ENERGY_ON frames required
+    //                    before opening a recorder (rejects clicks/pops)
+    //   SILENCE_MS     — pause length to terminate an utterance
+    //   SPEECH_MIN_MS  — min recorder duration to actually send
+    //   MAX_UTTER      — hard cap per utterance
+    //   COOLDOWN_MS    — pause AFTER agent finishes speaking before VAD
+    //                    listens again, lets the audio output buffer drain
+    //                    so the speaker-to-mic tail doesn't trigger a false
+    //                    start
+    // Phase 6e — retuned for natural, low-latency turn-taking. The old
+    // values (1200 ms silence + 700 ms cooldown + 5 start-frames) added
+    // ~1.5-2 s of dead air to every turn, which is the bulk of the "late
+    // response" feeling. Echo cancellation + the hard mic-mute while the
+    // agent speaks let us shorten these safely.
+    const ENERGY_ON      = 0.050;
+    const ENERGY_OFF     = 0.025;
+    const START_FRAMES   = 3;      // open recorder faster (was 5)
+    const SILENCE_MS     = 800;    // end-of-utterance pause (was 1200)
+    const SPEECH_MIN_MS  = 450;
+    const MAX_UTTER      = 14000;
+    const COOLDOWN_MS    = 350;    // resume listening sooner after TTS (was 700)
+
+    let recState = 'idle';   // idle | listening | recording | sending | speaking | cooldown | muted
+    let lastVoiceAt = 0;
+    let recStartedAt = 0;
+    let mediaRec = null;
+    let chunks = [];
+    let aboveCount = 0;      // consecutive frames above ENERGY_ON
+    let cooldownUntil = 0;   // timestamp; VAD ignores audio until this
+    let inFlight = false;    // a POST is in-progress; don't start another
+
+    const startRec = () => {
+      if (recState === 'recording' || this._callMuted || this._agentSpeaking) return;
+      if (inFlight) return;                  // a previous turn is still being processed
+      try {
+        mediaRec = new MediaRecorder(stream);
+        chunks = [];
+        mediaRec.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+        mediaRec.start();
+        recState = 'recording';
+        recStartedAt = Date.now();
+        setStatus('🔴 Recording…');
+        setHint('I\'m listening');
+      } catch (e) { /* mic may have been released */ }
+    };
+    const stopRec = async (forceSend) => {
+      if (!mediaRec || mediaRec.state !== 'recording') return;
+      const mr = mediaRec;
+      mediaRec = null;
+      const elapsed = Date.now() - recStartedAt;
+      const stopPromise = new Promise(res => mr.onstop = res);
+      try { mr.stop(); } catch (e) {}
+      await stopPromise;
+      const rawBlob = new Blob(chunks, {type: mr.mimeType || 'audio/webm'});
+      chunks = [];
+      // Drop tiny segments — likely a noise spike or feedback artefact.
+      // Bumped from 1500 → 4000 bytes + 350 → 500 ms after observing
+      // many empty Saaras transcripts that ran us into the 429 rate limit.
+      if (!forceSend && (rawBlob.size < 4000 || elapsed < SPEECH_MIN_MS)) {
+        recState = 'listening';
+        setStatus('👂 Listening…');
+        return;
+      }
+      // Don't pile up parallel requests — if a previous send is still
+      // in flight (orchestrator running, TTS generating), drop this one.
+      if (inFlight) {
+        recState = 'listening';
+        setStatus('👂 Listening… (previous turn still processing)');
+        return;
+      }
+      recState = 'sending';
+      inFlight = true;
+      setStatus('📤 Sending to ' + (this.curBot ? this.curBot.name : 'agent') + '…');
+      let wavBlob;
+      try { wavBlob = await blobToWav(rawBlob, 16000); }
+      catch (e) {
+        recState = 'listening';
+        inFlight = false;
+        setStatus('👂 Listening…');
+        return;
+      }
+      const fd = new FormData();
+      fd.append('audio', wavBlob, 'utterance.wav');
+      fd.append('callId', this.activeCall ? this.activeCall.callId : '');
+      try {
+        await fetch(`${API}/citizens/${this.citizenId}/conversations/${this.activeCall.agentId}/call-voice`,
+                    { method:'POST', body: fd });
+      } catch (e) {}
+      // After send: enter "speaking" state and wait for agent_message to
+      // arrive (audio playback by _playCallAudio sets _agentSpeaking which
+      // hard-mutes the mic until 'ended'). When TTS ends, we set a
+      // cooldownUntil to gate VAD until the audio output buffer drains.
+      recState = 'speaking';
+      setStatus('🗣 Agent replying…');
+      inFlight = false;
+    };
+    this._vadInFlightReset = () => { inFlight = false; };
+    this._vadStartCooldown = () => { cooldownUntil = Date.now() + COOLDOWN_MS; };
+
+    // Monitor loop — runs every animation frame
+    const monitor = () => {
+      if (!this._vad || !this.activeCall) return;
+      analyser.getByteTimeDomainData(buf);
+      // RMS energy from PCM samples
+      let sum = 0;
+      for (let i = 0; i < buf.length; i++) {
+        const v = (buf[i] - 128) / 128;
+        sum += v * v;
+      }
+      const energy = Math.sqrt(sum / buf.length);
+
+      // Visualise bars
+      const barCount = bars.length;
+      const live = Math.min(1, energy * 10);
+      for (let i = 0; i < barCount; i++) {
+        const h = 4 + Math.round(Math.abs(Math.sin(Date.now()/200 + i)) * live * 22);
+        bars[i].style.height = h + 'px';
+      }
+
+      const now = Date.now();
+      // Phase 6d sync fix — when the agent is speaking we HARD-MUTE the
+      // mic input track. This is stronger than just gating the VAD loop:
+      // the MediaStreamTrack literally stops capturing audio, so the
+      // speaker→mic acoustic feedback can't produce frames at all.
+      if (this._agentSpeaking) {
+        if (recState === 'recording') stopRec(false);
+        if (recState !== 'speaking') {
+          recState = 'speaking';
+          setStatus('🗣 Agent replying…');
+          aboveCount = 0;
+        }
+        // Mute every audio track so no input is captured
+        try { stream.getAudioTracks().forEach(t => t.enabled = false); } catch (e) {}
+        this._vad = requestAnimationFrame(monitor);
+        return;
+      } else if (recState === 'speaking') {
+        // Agent just stopped — re-enable mic + enter cooldown.
+        try { stream.getAudioTracks().forEach(t => t.enabled = true); } catch (e) {}
+        cooldownUntil = now + COOLDOWN_MS;
+        recState = 'cooldown';
+        setStatus('… (preparing to listen)');
+        aboveCount = 0;
+      }
+
+      if (recState === 'cooldown') {
+        if (now >= cooldownUntil) {
+          recState = 'listening';
+          setStatus('👂 Listening…');
+        } else {
+          this._vad = requestAnimationFrame(monitor);
+          return;
+        }
+      }
+
+      if (this._callMuted) {
+        if (recState === 'recording') stopRec(false);
+        try { stream.getAudioTracks().forEach(t => t.enabled = false); } catch (e) {}
+        recState = 'muted';
+        this._vad = requestAnimationFrame(monitor);
+        return;
+      }
+      if (recState === 'muted') {
+        try { stream.getAudioTracks().forEach(t => t.enabled = true); } catch (e) {}
+        recState = 'listening';
+        setStatus('👂 Listening…');
+        aboveCount = 0;
+      }
+
+      // VAD state machine with the START_FRAMES gate — requires N
+      // consecutive above-threshold frames before opening the recorder,
+      // so a single noise pop doesn't trigger a useless send.
+      if (recState === 'listening' || recState === 'idle') {
+        if (energy > ENERGY_ON) {
+          aboveCount++;
+          if (aboveCount >= START_FRAMES) {
+            startRec();
+            lastVoiceAt = now;
+            aboveCount = 0;
+          }
+        } else {
+          aboveCount = 0;
+        }
+      } else if (recState === 'recording') {
+        if (energy > ENERGY_OFF) {
+          lastVoiceAt = now;
+        }
+        const sinceVoice = now - lastVoiceAt;
+        const totalElapsed = now - recStartedAt;
+        if (sinceVoice >= SILENCE_MS || totalElapsed >= MAX_UTTER) {
+          stopRec(false);
+        }
+      }
+      this._vad = requestAnimationFrame(monitor);
+    };
+    this._vadStream = stream;
+    this._vadCtx = ctx;
+    this._callMuted = false;
+    recState = 'listening';
+    setStatus('👂 Listening…');
+    this._vad = requestAnimationFrame(monitor);
+  }
+
+  // ===== Phase 6f — LIVE LiveKit streaming voice =====
+  // Join the LiveKit room the backend minted, publish the mic, and play the
+  // agent's streamed audio. This is the low-latency path (Saaras v3 STT ->
+  // Sarvam-105B LLM token streaming -> Bulbul v3 TTS), driven by the worker
+  // process. Requires the agent worker to be running (`python -m
+  // backend.livekit_agent_worker dev`).
+  async _joinLiveKit() {
+    const vs = () => document.getElementById(`vad-status-${this.id}`);
+    const setStatus = (t) => { const e = document.getElementById(`call-status-${this.id}`); if (e) e.textContent = t; };
+    if (typeof LivekitClient === 'undefined') {
+      if (vs()) vs().textContent = 'Voice SDK not loaded — check your connection';
+      setStatus('SDK missing');
+      return;
+    }
+    const LK = LivekitClient;
+    // LiveKit events go to the browser console only (for debugging) — they are
+    // NOT shown on the call screen anymore.
+    const LOG = (...a) => {
+      const msg = a.map(x => (typeof x === 'object' ? JSON.stringify(x) : String(x))).join(' ');
+      try { console.log('[livekit]', msg); } catch (e) {}
+    };
+    try {
+      const room = new LK.Room({ adaptiveStream: true, dynacast: true });
+      this._lkRoom = room;
+
+      const playAudio = (track) => {
+        const old = document.getElementById(`lk-audio-${this.id}`);
+        if (old) { try { old.remove(); } catch (e) {} }
+        const el = track.attach();
+        el.id = `lk-audio-${this.id}`;
+        el.autoplay = true; el.setAttribute('playsinline', ''); el.volume = 1.0;
+        document.body.appendChild(el);
+        const p = el.play && el.play();
+        if (p && p.catch) p.catch(() => {
+          // Autoplay blocked — let the user tap to enable sound.
+          if (vs()) vs().textContent = '🔊 Tap anywhere to hear the agent';
+          const resume = () => { el.play().catch(() => {}); document.removeEventListener('click', resume); };
+          document.addEventListener('click', resume, { once: true });
+        });
+      };
+
+      room.on(LK.RoomEvent.TrackSubscribed, (track) => {
+        LOG('track subscribed:', track.kind);
+        if (track.kind === 'audio') playAudio(track);
+      });
+      room.on(LK.RoomEvent.TrackUnsubscribed, (track) => {
+        try { track.detach().forEach(e => e.remove()); } catch (e) {}
+      });
+      room.on(LK.RoomEvent.ParticipantConnected, (p) => {
+        LOG('participant joined:', p.identity);
+        if (vs()) vs().textContent = '👂 Listening…';
+      });
+      room.on(LK.RoomEvent.ActiveSpeakersChanged, (speakers) => {
+        if (!this._lkConnected || this._callMuted) return;
+        const agentSpeaking = (speakers || []).some(p => p !== room.localParticipant);
+        if (vs()) vs().textContent = agentSpeaking ? '🔊 Speaking…' : '👂 Listening…';
+      });
+      room.on(LK.RoomEvent.Disconnected, (reason) => {
+        LOG('DISCONNECTED reason=', reason);
+        this._lkConnected = false;
+        // Surface the reason on-screen so we can diagnose without the console.
+        if (vs()) vs().textContent = 'Disconnected (' + (reason !== undefined ? reason : '?') + ')';
+      });
+      room.on(LK.RoomEvent.ConnectionStateChanged, (st) => LOG('connection state:', st));
+      room.on(LK.RoomEvent.MediaDevicesError, (e) => { LOG('media error', e); if (vs()) vs().textContent = '🎤 Mic error — check permission'; });
+
+      // Best-effort live captions (SDK-version tolerant).
+      try {
+        room.registerTextStreamHandler('lk.transcription', async (reader, info) => {
+          const fromAgent = !!(info && info.attributes && info.attributes['lk.transcribed_track_id']);
+          for await (const chunk of reader) {
+            this._upsertCallTranscriptLine('lk-live', fromAgent ? 'bot' : 'user', chunk, false, false);
+          }
+        });
+      } catch (e) { /* older/newer SDK — captions optional */ }
+
+      room.on(LK.RoomEvent.LocalTrackPublished, (pub) => LOG('mic published:', pub.kind || (pub.track && pub.track.kind)));
+      room.on(LK.RoomEvent.ConnectionQualityChanged, (q, p) => { if (p === room.localParticipant) LOG('net quality:', q); });
+
+      if (vs()) vs().textContent = 'Connecting…';
+      LOG('connecting…');
+      await room.connect(this.activeCall.livekitUrl, this.activeCall.token);
+      LOG('connected; remotes=' + room.remoteParticipants.size);
+      try {
+        await room.localParticipant.setMicrophoneEnabled(true);
+        LOG('mic enabled');
+      } catch (micErr) {
+        LOG('mic FAILED: ' + (micErr && micErr.message || micErr));
+        if (vs()) vs().textContent = '🎤 Allow microphone to talk';
+      }
+      this._lkConnected = true;
+      this._callMuted = false;
+      if (vs() && vs().textContent === 'Connecting…') vs().textContent = '👂 Listening…';
+      setStatus('00:00');
+      // Attach any audio tracks already present (in case the agent published
+      // before our subscribe handler was registered).
+      try {
+        room.remoteParticipants.forEach(p => p.trackPublications.forEach(pub => {
+          if (pub.track && pub.track.kind === 'audio') playAudio(pub.track);
+        }));
+      } catch (e) {}
+    } catch (e) {
+      this._lkConnected = false;
+      LOG('connect failed', e);
+      if (vs()) vs().textContent = 'Connection failed: ' + (e.message || e);
+      setStatus('Failed');
+    }
+  }
+
+  _leaveLiveKit() {
+    this._lkConnected = false;
+    if (this._lkRoom) { try { this._lkRoom.disconnect(); } catch (e) {} this._lkRoom = null; }
+    const el = document.getElementById(`lk-audio-${this.id}`);
+    if (el) { try { el.remove(); } catch (e) {} }
+  }
+
+  _stopCallVAD() {
+    this._leaveLiveKit();
+    if (this._vad) { cancelAnimationFrame(this._vad); this._vad = null; }
+    if (this._vadStream) { try { this._vadStream.getTracks().forEach(t => t.stop()); } catch(e){} this._vadStream = null; }
+    if (this._vadCtx) { try { this._vadCtx.close(); } catch(e){} this._vadCtx = null; }
+    // Phase 6e — silence any in-flight reply so it can't bleed past call end.
+    if (this._callAudio) {
+      try { this._callAudio.pause(); this._callAudio.src = ''; } catch (e) {}
+      this._callAudio = null;
+    }
+    this._audioGen = (this._audioGen || 0) + 1;  // invalidate pending 'ended' handlers
+    this._agentSpeaking = false;
+  }
+
+  _toggleCallMute() {
+    this._callMuted = !this._callMuted;
+    const b = document.getElementById(`call-mute-${this.id}`);
+    if (b) b.classList.toggle('active', this._callMuted);
+    // In LIVE mode, actually mute the published mic track.
+    if (this._lkRoom) {
+      try { this._lkRoom.localParticipant.setMicrophoneEnabled(!this._callMuted); } catch (e) {}
+    }
+    const h = document.getElementById(`vad-status-${this.id}`);
+    if (h) h.textContent = this._callMuted ? '🔇 Muted (tap mute to resume)' : '👂 Listening…';
+  }
+
+  _upsertCallTranscriptLine(key, role, text, isFinal, systemPrompt) {
+    const t = document.getElementById(`call-transcript-${this.id}`);
+    if (!t) return;
+    let el = document.getElementById(`ctl-${key}`);
+    if (!el) {
+      el = document.createElement('div');
+      el.id = `ctl-${key}`;
+      // Phase 6d — by default this transcript stays hidden (CSS). Special
+      // system messages (audio errors, autoplay-blocked tap-to-play
+      // prompts) pass systemPrompt=true to surface in the call UI.
+      el.className = `call-transcript-line ${role}` + (systemPrompt ? ' system-prompt' : '');
+      if (role === 'bot') el.innerHTML = `<span class="agent-prefix">${this.escHTML(this.curBot?this.curBot.name:'Agent')}</span><span class="ctl-text"></span>`;
+      else el.innerHTML = `<span class="ctl-text"></span>`;
+      t.appendChild(el);
+    }
+    el.querySelector('.ctl-text').textContent = text;
+    t.scrollTop = t.scrollHeight;
+  }
+
+  _playCallAudio(audioUrl) {
+    if (!audioUrl) {
+      // Surface this — usually means TTS returned no audio
+      this._upsertCallTranscriptLine(
+        `aud-err-${Date.now()}`, 'bot',
+        '⚠️ Agent has no audio to play (TTS may have failed — check server log)',
+        true, true,
+      );
+      return;
+    }
+    const fullUrl = `${BACKEND_BASE}${audioUrl}`;
+    // Phase 6e — SINGLE call-audio channel. A new reply must never play on
+    // top of one that's still speaking (the root cause of "overlapping
+    // voices"): stop + release the previous clip first. We also stamp each
+    // playback with a generation id so a stale clip's 'ended' handler can't
+    // clear _agentSpeaking while a newer clip is mid-sentence (which would
+    // re-open the mic during agent speech → echo → the agent answering
+    // itself).
+    if (this._callAudio) {
+      try { this._callAudio.pause(); this._callAudio.onended = null;
+            this._callAudio.onerror = null; this._callAudio.src = ''; } catch (e) {}
+      this._callAudio = null;
+    }
+    const audio = new Audio(fullUrl);
+    audio.preload = 'auto';
+    this._callAudio = audio;
+    const gen = (this._audioGen = (this._audioGen || 0) + 1);
+    // Phase 6d — flag VAD off while agent speaks so the citizen's mic
+    // doesn't capture and ship the agent's own voice back. Cleared in
+    // 'ended' so VAD resumes listening for the citizen's next turn — but
+    // ONLY if this is still the latest clip.
+    this._agentSpeaking = true;
+    const clearSpeaking = () => { if (gen === this._audioGen) this._agentSpeaking = false; };
+    audio.addEventListener('ended', clearSpeaking);
+    audio.addEventListener('pause', () => { /* don't clear — could be loading */ });
+    audio.addEventListener('error', clearSpeaking);
+    // play() returns a Promise that Chrome rejects when the call is too
+    // far removed from a user gesture. Catch that and offer a tap-to-play.
+    const p = audio.play();
+    if (p && typeof p.then === 'function') {
+      p.catch((err) => {
+        console.warn('Call audio playback blocked or failed:', err);
+        clearSpeaking();  // unblock VAD so citizen can speak
+        const lineKey = `tap-${Date.now()}`;
+        this._upsertCallTranscriptLine(
+          lineKey, 'bot',
+          `🔊 Tap here to play voice reply (browser blocked autoplay)`, true, true,
+        );
+        // Make the line tappable to retry play (which counts as a fresh user gesture)
+        setTimeout(() => {
+          const el = document.getElementById('ctl-' + lineKey);
+          if (el) {
+            el.style.cursor = 'pointer';
+            el.style.textDecoration = 'underline';
+            el.addEventListener('click', () => {
+              audio.play().catch(e => {
+                el.querySelector('.ctl-text').textContent =
+                  `❌ Playback still blocked: ${e.message}`;
+              });
+            });
+          }
+        }, 50);
+      });
+    }
+  }
+
+  /** Called once at call start — primes audio playback so subsequent
+   *  audio.play() calls aren't blocked by browser autoplay policy. */
+  async _warmAudioContext() {
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      if (!this._audioCtx) this._audioCtx = new Ctx();
+      if (this._audioCtx.state === 'suspended') {
+        await this._audioCtx.resume();
+      }
+      // Play a 1-frame silent buffer to definitively unlock autoplay.
+      const buffer = this._audioCtx.createBuffer(1, 1, 22050);
+      const src = this._audioCtx.createBufferSource();
+      src.buffer = buffer;
+      src.connect(this._audioCtx.destination);
+      src.start(0);
+    } catch (e) {
+      console.warn('AudioContext warmup failed:', e);
+    }
+  }
+
+  render() {
+    const wrapper = document.getElementById(`ph-${this.id}`);
+    if (!wrapper) return;
+    const screen = wrapper.querySelector('.phone-screen');
+    screen.innerHTML = this._tplStatusBar() + `<div class="screen-content" id="sc-${this.id}"></div>`;
+    const sc = document.getElementById(`sc-${this.id}`);
+    if (this.state === 'onboarding') { sc.innerHTML = this._tplOnboarding(); this._bindOnboarding(); }
+    else if (this.state === 'chatlist') { sc.innerHTML = this._tplChatList(); this._bindChatList(); }
+    else if (this.state === 'chat') { sc.innerHTML = this._tplChat(); this._bindChat(); }
+    else if (this.state === 'mydata') { sc.innerHTML = this._tplMyData(); this._bindMyData(); }
+  }
+
+  _tplStatusBar() {
+    const t = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false});
+    return `<div class="status-bar"><span class="status-time">${t}</span><div class="status-icons">
+      <svg width="17" height="13" viewBox="0 0 17 13" fill="white">
+        <rect x="0" y="7" width="3" height="6" rx="1"/><rect x="4.5" y="4.5" width="3" height="8.5" rx="1"/>
+        <rect x="9" y="2" width="3" height="11" rx="1"/><rect x="13.5" y="0" width="3" height="13" rx="1" opacity="0.25"/>
+      </svg>
+      <svg width="26" height="13" viewBox="0 0 26 13" fill="none">
+        <rect x="0.5" y="0.5" width="22" height="12" rx="3" stroke="white" stroke-opacity="0.4"/>
+        <rect x="23" y="3.5" width="2.5" height="6" rx="1" fill="white" fill-opacity="0.35"/>
+        <rect x="1.5" y="1.5" width="16" height="10" rx="2" fill="white"/>
+      </svg></div></div>`;
+  }
+
+  _tplOnboarding() {
+    return `<div class="onboarding-wrap">
+      <div class="wa-logo-circle">💬</div>
+      <h2>Government Services</h2>
+      <p class="sub">Chat with any department, call them, or upload a document. Tap 📞 to call, 📎 to attach your PAN, Aadhaar, DL or Patta.</p>
+      <div class="phone-input-row">
+        <span class="country-code">🇮🇳 +91</span>
+        <input id="pi-${this.id}" type="tel" inputmode="numeric" maxlength="10" placeholder="Mobile number">
+      </div>
+      <button id="pn-${this.id}" class="btn-next" disabled>NEXT →</button>
+      <p class="tos-note">📞 call · 📎 attach a document · 🎤 hold to talk</p>
+    </div>`;
+  }
+
+  _bindOnboarding() {
+    const inp = document.getElementById(`pi-${this.id}`);
+    const btn = document.getElementById(`pn-${this.id}`);
+    inp.addEventListener('input', () => {
+      inp.value = inp.value.replace(/\D/g,'').slice(0,10);
+      btn.disabled = inp.value.length !== 10;
+    });
+    btn.addEventListener('click', async () => {
+      if (inp.value.length !== 10) return;
+      btn.disabled = true; btn.textContent = '⏳ Connecting…';
+      try {
+        this.phone = inp.value;
+        await this.authInit(this.phone);
+        const lbl = document.getElementById(`lbl-${this.id}`);
+        const lblText = lbl && lbl.querySelector('.lbl-text');
+        if (lblText) lblText.textContent = `+91 ${this.phone}`;
+        await this.loadAgents(); this.openWS();
+        this.state = 'chatlist'; this.render();
+      } catch (e) { btn.disabled = false; btn.textContent = 'NEXT →'; alert('Connection failed: ' + e.message); }
+    });
+  }
+
+  _tplChatList() {
+    const items = this.bots.map(b => this._tplChatItem(b)).join('');
+    // Phase 6d — single settings button replaces the two action buttons.
+    // The header now shows a brief state chip + a gear that opens a menu
+    // with Change state / My Data / About.
+    const stateChip = this.stateCode
+      ? `<span class="wa-state-chip">${this.stateEmoji||'🇮🇳'} ${this.escHTML(this.stateCode)}</span>`
+      : '';
+    return `<div class="chatlist-wrap">
+      <div class="wa-header">
+        <div class="wa-header-left">
+          <div class="wa-title">Gov Services ${stateChip}</div>
+          <div class="wa-num">${this.phone?'+91 '+this.phone:''}${this.stateName?' · '+this.escHTML(this.stateName):''}</div>
+        </div>
+        <button class="wa-settings-btn" id="setbtn-${this.id}" title="Settings" aria-label="Settings">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+      <div class="search-wrap"><input type="text" id="srch-${this.id}" placeholder="🔍  Search department"></div>
+      <div class="chat-list" id="cl-${this.id}">${items}</div>
+    </div>`;
+  }
+
+  _tplChatItem(bot) {
+    const u = this.unread[bot.id] || 0;
+    const pre = this.preview[bot.id] || { text: bot.description || 'Tap to chat', time: '' };
+    const hasUnread = u > 0;
+    const pin = bot.pinned ? `<span class="pin-badge">📌</span>` : '';
+    return `<div class="chat-item" data-bot="${bot.id}">
+      <div class="ci-avatar" style="background:${bot.bg}">${bot.emoji}</div>
+      <div class="ci-body">
+        <div class="ci-row1"><span class="ci-name">${this.escHTML(bot.name)}${pin}</span>
+          <span class="ci-time${hasUnread?' has-unread':''}">${this.escHTML(pre.time)}</span></div>
+        <div class="ci-row2"><span class="ci-preview">${this.escHTML(pre.text)}</span>
+          ${hasUnread?`<span class="unread-pill">${u}</span>`:''}</div>
+      </div>
+    </div>`;
+  }
+
+  _bindChatList() {
+    const cl = document.getElementById(`cl-${this.id}`);
+    cl.addEventListener('click', e => {
+      const item = e.target.closest('.chat-item');
+      if (!item) return;
+      const bot = this.bots.find(b => b.id === item.dataset.bot);
+      if (bot) this.openChat(bot);
+    });
+    const srch = document.getElementById(`srch-${this.id}`);
+    srch.addEventListener('input', () => {
+      const q = srch.value.toLowerCase();
+      cl.querySelectorAll('.chat-item').forEach(el => {
+        const name = el.querySelector('.ci-name').textContent.toLowerCase();
+        el.style.display = name.includes(q) ? '' : 'none';
+      });
+    });
+    // Phase 6d — single settings button (replaces Pick state + My Data)
+    const setbtn = document.getElementById(`setbtn-${this.id}`);
+    if (setbtn) setbtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this._toggleSettingsMenu();
+    });
+  }
+
+  // PHASE 6d — settings dropdown menu
+  _toggleSettingsMenu() {
+    const wrap = document.getElementById(`ph-${this.id}`);
+    if (!wrap) return;
+    // Close if open
+    const existing = wrap.querySelector('.wa-settings-menu');
+    if (existing) { existing.remove(); wrap.querySelectorAll('.wa-settings-backdrop').forEach(b => b.remove()); return; }
+
+    const stateLabel = this.stateCode
+      ? `${this.escHTML(this.stateName||this.stateCode)}${this.stateAutoDetected?' (auto)':''}`
+      : 'Not set — tap to pick';
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'wa-settings-backdrop';
+    backdrop.addEventListener('click', () => this._toggleSettingsMenu());
+    wrap.appendChild(backdrop);
+
+    const menu = document.createElement('div');
+    menu.className = 'wa-settings-menu';
+    menu.innerHTML = `
+      <div class="menu-item" data-act="state">
+        <span class="icon">${this.stateEmoji||'🇮🇳'}</span>
+        <div>
+          <span class="main">Change state</span>
+          <span class="sub">${stateLabel}</span>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="menu-item" data-act="mydata">
+        <span class="icon">🔒</span>
+        <div>
+          <span class="main">My Data</span>
+          <span class="sub">DPDP rights · export · erase</span>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="menu-item" data-act="about">
+        <span class="icon">ℹ️</span>
+        <div>
+          <span class="main">About</span>
+          <span class="sub">+91 ${this.escHTML(this.phone||'')} · Government Services</span>
+        </div>
+      </div>
+    `;
+    menu.addEventListener('click', (e) => {
+      const item = e.target.closest('.menu-item');
+      if (!item) return;
+      const act = item.dataset.act;
+      this._toggleSettingsMenu();   // close
+      if (act === 'state') this._showStatePicker();
+      else if (act === 'mydata') { this.state = 'mydata'; this.render(); }
+      else if (act === 'about') {
+        alert(`Government Services Assistant\nCitizen ID: ${this.citizenId||'(none)'}\nState: ${this.stateName||'(unset)'}\nLanguage: ${this.primaryLanguage||'(unset)'}`);
+      }
+    });
+    wrap.appendChild(menu);
+  }
+
+  async _showStatePicker() {
+    const states = await this.loadStates();
+    const wrap = document.getElementById(`ph-${this.id}`);
+    const overlay = document.createElement('div');
+    overlay.className = 'state-overlay';
+    const rows = states.map(s => `
+      <div class="state-row" data-code="${this.escHTML(s.code)}">
+        <span class="em">${s.emoji||'🇮🇳'}</span>
+        <span>${this.escHTML(s.name)}</span>
+        <span class="lang-pill">${this.escHTML(s.primary_language)}</span>
+        <span class="code">${this.escHTML(s.code)}</span>
+      </div>`).join('');
+    overlay.innerHTML = `
+      <div class="state-modal">
+        <h3>Pick your state</h3>
+        <div class="sub">${states.length} states + UTs · current: ${this.escHTML(this.stateName||'(none)')}</div>
+        ${rows}
+      </div>`;
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.remove();
+      const row = e.target.closest('.state-row');
+      if (row) { this.setState(row.dataset.code); overlay.remove(); }
+    });
+    wrap.appendChild(overlay);
+  }
+
+  // ===== PHASE 6b — My Data (DPDP Act 2023 — Data Subject Rights) =====
+  _tplMyData() {
+    return `<div class="chatlist-wrap" style="background:#f6f7f9">
+      <div class="wa-header" style="background:#1F3864">
+        <button class="back-btn" id="md-bk-${this.id}" style="background:transparent;border:none;color:white;font-size:22px;cursor:pointer;padding:0 6px;margin-right:8px">←</button>
+        <div class="wa-header-left">
+          <div class="wa-title">🔒 My Data</div>
+          <div class="wa-num">Your DPDP rights</div>
+        </div>
+      </div>
+      <div style="padding:12px 14px; overflow-y:auto; flex:1">
+        <div class="md-note" style="background:#eff6ff;border:1px solid #93c5fd;padding:10px 12px;border-radius:8px;font-size:12px;color:#1e3a8a;line-height:1.5;margin-bottom:14px">
+          Under the <strong>Digital Personal Data Protection Act, 2023</strong>, you have the right to see, correct, revoke consent on, and erase your personal data held by these services.
+        </div>
+
+        <div class="md-card" id="md-summary-${this.id}" style="background:white;border-radius:10px;padding:12px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+          <div style="font-size:13px;color:#6b7280">Loading your overview…</div>
+        </div>
+
+        <div class="md-action" data-act="export" style="background:white;border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;border:1px solid #e5e7eb">
+          <div style="font-weight:700;color:#1F3864">📦 Export my data</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:3px">Download a ZIP with everything we hold — profile, conversations, consents, audit trail, your uploads. (DPDP §11+§12)</div>
+        </div>
+
+        <div class="md-action" data-act="consents" style="background:white;border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;border:1px solid #e5e7eb">
+          <div style="font-weight:700;color:#1F3864">🔐 Manage my consents</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:3px">See active permissions and revoke any. (DPDP §6(5))</div>
+        </div>
+
+        <div class="md-action" data-act="audit" style="background:white;border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;border:1px solid #e5e7eb">
+          <div style="font-weight:700;color:#1F3864">📜 My audit trail</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:3px">Every consequential action taken on your data, cryptographically logged.</div>
+        </div>
+
+        <div class="md-action" data-act="correction" style="background:white;border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;border:1px solid #e5e7eb">
+          <div style="font-weight:700;color:#1F3864">✏️ Request correction</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:3px">Ask the Data Protection Officer to correct a wrong field. (DPDP §12)</div>
+        </div>
+
+        <div class="md-action" data-act="erasure" style="background:white;border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;border:1px solid #fecaca;color:#991b1b">
+          <div style="font-weight:700">🗑️ Request erasure</div>
+          <div style="font-size:11px;color:#9b3030;margin-top:3px">Irreversibly delete your conversations + uploads. Audit/consent ledger is retained for legal record (DPDP §17(3) exemption).</div>
+        </div>
+
+        <div id="md-out-${this.id}" style="margin-top:14px"></div>
+      </div>
+    </div>`;
+  }
+
+  async _bindMyData() {
+    const bk = document.getElementById(`md-bk-${this.id}`);
+    if (bk) bk.addEventListener('click', () => { this.state = 'chatlist'; this.render(); });
+    document.querySelectorAll(`#sc-${this.id} .md-action`).forEach(el => {
+      el.addEventListener('click', () => this._mdAction(el.dataset.act));
+    });
+    this._mdLoadSummary();
+  }
+
+  async _mdLoadSummary() {
+    const el = document.getElementById(`md-summary-${this.id}`);
+    if (!el || !this.citizenId) return;
+    try {
+      const j = await this.apiFetch(`/citizen/${this.citizenId}/consents`);
+      el.innerHTML = `
+        <div style="font-weight:700;color:#1F3864">+91 ${this.phone}</div>
+        <div style="font-size:11px;color:#6b7280;margin-top:3px">Citizen ID <code>${this.citizenId}</code></div>
+        <div style="display:flex;gap:18px;margin-top:10px">
+          <div><div style="font-size:20px;font-weight:700;color:#075E54">${j.active_count}</div>
+               <div style="font-size:10px;color:#6b7280">active consents</div></div>
+          <div><div style="font-size:20px;font-weight:700;color:#6b7280">${j.all_count}</div>
+               <div style="font-size:10px;color:#6b7280">total ledger entries</div></div>
+        </div>`;
+    } catch (e) {
+      el.innerHTML = `<div style="font-size:12px;color:#991b1b">Could not load: ${this.escHTML(e.message)}</div>`;
+    }
+  }
+
+  async _mdAction(act) {
+    const out = document.getElementById(`md-out-${this.id}`);
+    out.innerHTML = `<div style="background:white;border-radius:10px;padding:12px;font-size:12px;color:#6b7280">⏳ Working…</div>`;
+    try {
+      if (act === 'export') {
+        const r = await fetch(`${API}/citizen/${this.citizenId}/export`);
+        if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+        const blob = await r.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `my-data-${this.citizenId}.zip`; document.body.appendChild(a);
+        a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
+        out.innerHTML = `<div style="background:#dcfce7;border:1px solid #86efac;border-radius:10px;padding:12px;font-size:12px;color:#166534">
+          ✅ Downloaded <strong>my-data-${this.citizenId}.zip</strong> (${(blob.size/1024).toFixed(1)} KB).<br>
+          Open the ZIP — there's a README inside explaining the structure.
+        </div>`;
+        return;
+      }
+
+      if (act === 'consents') {
+        const j = await this.apiFetch(`/citizen/${this.citizenId}/consents`);
+        const rows = (j.active.length === 0)
+          ? `<div style="font-size:12px;color:#6b7280;padding:10px;text-align:center">No active consents.</div>`
+          : j.active.map(c => `
+            <div style="border-bottom:1px solid #e5e7eb;padding:10px 0;display:flex;align-items:center;gap:10px">
+              <div style="flex:1">
+                <div style="font-weight:600;color:#1F3864;font-size:13px">${this.escHTML(c.toolId)}</div>
+                <div style="font-size:10px;color:#6b7280;margin-top:2px">${this.escHTML(c.agentId)} · scope <code>${this.escHTML(c.scope)}</code></div>
+                <div style="font-size:10px;color:#6b7280">granted ${this.escHTML(c.decidedAt||'')}</div>
+              </div>
+              <button class="md-revoke" data-grant="${this.escHTML(c.grantId)}" style="background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer">Revoke</button>
+            </div>`).join('');
+        out.innerHTML = `<div style="background:white;border-radius:10px;padding:12px">
+          <div style="font-weight:700;color:#1F3864;margin-bottom:8px">Active consents (${j.active.length})</div>
+          ${rows}
+          <details style="margin-top:10px"><summary style="cursor:pointer;font-size:11px;color:#6b7280">📜 Full ledger history (${j.all_count} entries)</summary>
+            <div style="font-size:10px;color:#6b7280;margin-top:6px;font-family:monospace;max-height:160px;overflow-y:auto">
+              ${j.history.slice().reverse().map(h => `<div>[${h.entryNo}] ${h.type} <code>${this.escHTML(h.grantId||h.requestId||'')}</code> ${h.status||''}</div>`).join('')}
+            </div>
+          </details>
+        </div>`;
+        out.querySelectorAll('.md-revoke').forEach(b => {
+          b.addEventListener('click', async () => {
+            const g = b.dataset.grant;
+            if (!confirm(`Revoke consent ${g}?`)) return;
+            try {
+              await this.apiFetch(`/citizen/${this.citizenId}/consents/${g}/revoke`, {method:'POST'});
+              this._mdAction('consents');   // refresh
+              this._mdLoadSummary();
+            } catch (e) { alert(e.message); }
+          });
+        });
+        return;
+      }
+
+      if (act === 'audit') {
+        const j = await this.apiFetch(`/citizen/${this.citizenId}/audit?limit=50`);
+        const rows = (j.entries.length === 0)
+          ? `<div style="font-size:12px;color:#6b7280;padding:10px;text-align:center">No audit entries yet.</div>`
+          : j.entries.slice().reverse().map(e => `
+            <div style="border-bottom:1px solid #f3f4f6;padding:6px 0;font-size:11px;color:#374151">
+              <span style="color:#6b7280;font-family:monospace">#${e.entryNo}</span>
+              <strong>${this.escHTML(e.action)}</strong>
+              <span style="color:#6b7280">${this.escHTML((e.timestamp||'').slice(0,19))}</span>
+              ${e.resource && e.resource.toolId ? `<br><span style="color:#9ca3af;margin-left:24px">${this.escHTML(e.resource.toolId)}</span>` : ''}
+            </div>`).join('');
+        out.innerHTML = `<div style="background:white;border-radius:10px;padding:12px;max-height:340px;overflow-y:auto">
+          <div style="font-weight:700;color:#1F3864;margin-bottom:6px">Your audit trail (${j.count})</div>
+          <div style="font-size:10px;color:#6b7280;margin-bottom:8px">Every entry is hash-chained and Ed25519-signed.</div>
+          ${rows}
+        </div>`;
+        return;
+      }
+
+      if (act === 'correction') {
+        const field = prompt('Which field needs correction? (e.g. name, address)', '');
+        if (!field) { out.innerHTML = ''; return; }
+        const newVal = prompt(`What is the correct value for "${field}"?`, '');
+        if (newVal == null) { out.innerHTML = ''; return; }
+        const reason = prompt('Reason for correction (optional):', '') || '';
+        const j = await this.apiFetch(`/citizen/${this.citizenId}/correction`, {
+          method: 'POST',
+          body: JSON.stringify({ field, new_value: newVal, reason }),
+        });
+        out.innerHTML = `<div style="background:#dcfce7;border:1px solid #86efac;border-radius:10px;padding:12px;font-size:12px;color:#166534">
+          ✅ Correction request <code>${this.escHTML(j.requestId||'-')}</code> submitted to the Data Protection Officer.
+          You'll get a status update within 30 working days.
+        </div>`;
+        return;
+      }
+
+      if (act === 'erasure') {
+        if (!confirm('Erase all your chat content + uploads?\n\nThis is irreversible.\n\nThe audit trail + consent ledger are retained for legal record-keeping (DPDP §17(3) exemption).')) {
+          out.innerHTML = ''; return;
+        }
+        const reason = prompt('Reason (optional):', '') || '';
+        const j = await this.apiFetch(`/citizen/${this.citizenId}/erasure`, {
+          method:'POST', body: JSON.stringify({ reason, confirm: true }),
+        });
+        out.innerHTML = `<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:12px;font-size:12px;color:#991b1b">
+          🗑️ Erasure complete. Request id <code>${this.escHTML(j.requestId||'-')}</code>.<br>
+          Items erased: ${this.escHTML(JSON.stringify(j.stats||{}))}.<br>
+          Audit + consent ledger retained per DPDP §17(3).
+        </div>`;
+        this._mdLoadSummary();
+        return;
+      }
+    } catch (e) {
+      out.innerHTML = `<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:12px;font-size:12px;color:#991b1b">❌ ${this.escHTML(e.message)}</div>`;
+    }
+  }
+
+  _refreshChatItem(botId) {
+    const cl = document.getElementById(`cl-${this.id}`);
+    if (!cl) return;
+    const bot = this.bots.find(b => b.id === botId); if (!bot) return;
+    const old = cl.querySelector(`[data-bot="${botId}"]`); if (!old) return;
+    const tmp = document.createElement('div'); tmp.innerHTML = this._tplChatItem(bot);
+    const newEl = tmp.firstElementChild;
+    newEl.addEventListener('click', () => this.openChat(bot));
+    cl.insertBefore(newEl, old); old.remove();
+  }
+
+  async openChat(bot) {
+    this.curBot = bot;
+    this.unread[bot.id] = 0;
+    this.state = 'chat';
+    try { await this.loadHistory(bot.id); } catch(e) {}
+    this.render();
+  }
+
+  _tplChat() {
+    const bot = this.curBot;
+    const msgsHtml = this.msgs[bot.id].map(m => this._tplMsg(m)).join('');
+    return `<div class="chat-wrap">
+      <div class="chat-header">
+        <button class="back-btn" id="bk-${this.id}">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="white"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        </button>
+        <div class="ch-avatar" style="background:${bot.bg}">${bot.emoji}</div>
+        <div class="ch-info">
+          <div class="ch-name">${this.escHTML(bot.name)}</div>
+          <div class="ch-status">Government helpdesk · online</div>
+        </div>
+        <div class="ch-actions">
+          <button class="ch-call-btn" id="call-${this.id}" title="Voice call">📞</button>
+        </div>
+      </div>
+      <div class="messages-area" id="ma-${this.id}">
+        <div class="date-sep"><span>Today</span></div>
+        ${msgsHtml}
+      </div>
+      <div class="chat-input-area">
+      <button class="ib-side-btn" id="att-${this.id}" title="Attach document">📎</button>
+        <div class="input-box-wrap">
+          <textarea class="chat-textarea" id="tx-${this.id}" placeholder="Type, attach a document, or hold mic…" rows="1"></textarea>
+        </div>
+        <button class="action-fab" id="fab-${this.id}" data-mode="mic" title="Tap = send · Hold = record voice">
+          <svg id="fab-icon-${this.id}" viewBox="0 0 24 24" width="22" height="22" fill="white">
+            <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
+          </svg>
+        </button>
+      </div>
+    </div>`;
+  }
+
+  _tplMsg(msg) {
+    if (msg.type === 'tool_result') return this._tplToolResult(msg);
+    if (msg.type === 'system_event') return `<div class="msg-bubble system-event" style="white-space:pre-line">${this.escHTML(msg.text)}</div>`;
+    if (msg.type === 'voice') return this._tplVoiceMsg(msg);
+    if (msg.type === 'media') return this._tplMediaMsg(msg);
+    const role = msg.role === 'user' ? 'sent' : 'received';
+    const ticks = msg.role === 'user' ? `<span class="msg-ticks">✓✓</span>` : '';
+    const langBadge = msg.lang && msg.lang !== 'en-IN' && msg.role === 'agent' ? ` <span class="lang-badge">${msg.lang.replace('-IN','')}</span>` : '';
+    const audioBtn = msg.audioUrl ? `<div style="margin-top:4px;border-top:1px solid rgba(0,0,0,0.05);padding-top:4px;">${this._audioPlayButton(msg.audioUrl)}</div>` : '';
+    // Phase 6c — citation chips for agent messages
+    const cites = (msg.role === 'agent' && msg.extra && Array.isArray(msg.extra.citations))
+      ? this._tplCitations(msg.extra) : '';
+    return `<div class="msg-bubble ${role}">
+      <div class="msg-text">${msg.role === 'user' ? this.escHTML(msg.text) : this.richText(msg.text)}</div>
+      ${audioBtn}
+      ${cites}
+      <div class="msg-meta"><span>${msg.time}</span>${langBadge}${ticks}</div>
+    </div>`;
+  }
+
+  _tplCitations(extra) {
+    const cites = extra.citations || [];
+    if (!cites.length) return '';
+    const lowConf = extra.ragLowConfidence ? '<span class="cite-low">⚠️ low retrieval confidence</span>' : '';
+    return `<div class="cite-strip">
+      ${lowConf}
+      ${cites.slice(0, 4).map((c, i) => {
+        const url = c.sourceUrl ? c.sourceUrl : '';
+        const tag = url
+          ? `<a class="cite-chip" href="${this.escHTML(url)}" target="_blank" title="${this.escHTML(c.source||'')}">📜 ${this.escHTML(c.title||'source')}${c.lastVerified?` · ${c.lastVerified}`:''}</a>`
+          : `<span class="cite-chip" title="${this.escHTML(c.source||'')}">📜 ${this.escHTML(c.title||'source')}${c.lastVerified?` · ${c.lastVerified}`:''}</span>`;
+        return tag;
+      }).join('')}
+    </div>`;
+  }
+
+  _tplMediaMsg(msg) {
+    const role = msg.role === 'user' ? 'sent' : 'received';
+    const ticks = msg.role === 'user' ? `<span class="msg-ticks">✓✓</span>` : '';
+    const url = msg.mediaUrl && msg.mediaUrl.startsWith('blob:') ? msg.mediaUrl
+              : (msg.mediaUrl ? `${BACKEND_BASE}${msg.mediaUrl}` : '');
+    const isImage = (msg.mimeType || '').startsWith('image/') ||
+      /\.(png|jpe?g|webp|gif|bmp|heic|heif|tiff?)$/i.test(msg.filename || msg.text || '');
+    const preview = isImage
+      ? `${url ? `<img class="media-img" src="${url}" alt="${this.escHTML(msg.text)}">` : ''}`
+      : `<div class="media-doc">
+           <div class="media-doc-icon">📄</div>
+           <div class="media-doc-name">${this.escHTML(msg.filename || msg.text || '[document]')}</div>
+           ${url ? `<a class="media-doc-link" href="${url}" target="_blank" rel="noopener">Open file</a>` : ''}
+         </div>`;
+    return `<div class="msg-bubble ${role} media-bubble">
+      ${preview}
+      <div class="media-caption">${this.escHTML(msg.text)}</div>
+      <div class="msg-meta"><span>${msg.time}</span>${ticks}</div>
+    </div>`;
+  }
+
+  _tplVoiceMsg(msg) {
+    const role = msg.role === 'user' ? 'sent' : 'received';
+    const ticks = msg.role === 'user' ? `<span class="msg-ticks">✓✓</span>` : '';
+    const seed = msg.seed || 0;
+    const bars = Array.from({length:22}, (_,i) => {
+      const h = 4 + Math.round(Math.abs(Math.sin(i * 0.65 + seed)) * 18);
+      return `<span style="height:${h}px"></span>`;
+    }).join('');
+    const dur = msg.dur || (msg.durationSec ? `0:${String(Math.round(msg.durationSec)).padStart(2,'0')}` : '0:05');
+    const audioBtn = msg.audioUrl ? `<button class="voice-play" data-audio="${msg.audioUrl}">▶</button>`
+                                  : `<button class="voice-play">▶</button>`;
+    const transcript = msg.text && msg.role === 'user'
+      ? `<div class="voice-transcript">"${this.escHTML(msg.text)}"</div>` : '';
+    return `<div class="msg-bubble ${role}">
+      <div class="voice-wrap">${audioBtn}<div class="voice-waveform">${bars}</div><span class="voice-dur">${dur}</span></div>
+      ${transcript}
+      <div class="msg-meta"><span>${msg.time}</span>${ticks}</div>
+    </div>`;
+  }
+
+  _tplToolResult(msg) {
+    const extra = msg.extra || {};
+    const toolId = extra.toolId || 'tool';
+    const result = extra.result || {};
+    const doc = result.document || {};
+    const isVision = toolId === 'vision.extract_document';
+    const cardCls = isVision ? 'tool-card vision' : 'tool-card';
+    const icon = isVision ? '🔎' : '📄';
+    const docType = result.document_type || toolId;
+    if (isVision) {
+      // Keep OCR available to the agent and store, but do not show the raw
+      // document-intelligence card in the simulator output.
+      return '';
+    }
+    if (Object.keys(doc).length) {
+      const rows = Object.entries(doc).filter(([k]) => !k.startsWith('is_')).map(([k,v]) =>
+        `<div class="tc-row"><span class="tc-key">${this.escHTML(k)}:</span> ${this.escHTML(typeof v==='object'?JSON.stringify(v):String(v))}</div>`
+      ).join('');
+      const conf = result.confidence ? ` · ${(result.confidence*100).toFixed(0)}%` : '';
+      const mock = result.is_mock ? ' (mock)' : '';
+      return `<div class="${cardCls}">
+        <div class="tc-header">${icon} ${this.escHTML(docType)}${conf}${mock}</div>
+        ${rows}
+      </div>`;
+    }
+    if (result.complaint_id) {
+      return `<div class="tool-card"><div class="tc-header">✅ Complaint Registered</div>
+        <div class="tc-row"><span class="tc-key">id:</span> ${this.escHTML(result.complaint_id)}</div></div>`;
+    }
+    if (result.grievance_id) {
+      return `<div class="tool-card"><div class="tc-header">✅ Grievance Filed</div>
+        <div class="tc-row"><span class="tc-key">id:</span> ${this.escHTML(result.grievance_id)}</div></div>`;
+    }
+    // Phase 6f — record-backed tools (create / track / list / schemes) get a
+    // clean card instead of a raw JSON blob.
+    if ((toolId === 'records.create' || toolId === 'cmo.create_grievance' ||
+         toolId === 'water.register_complaint') && result.record_id) {
+      const dup = result.duplicate ? ' (existing case)' : '';
+      const desk = result.owner_desk ? `<div class="tc-row"><span class="tc-key">desk:</span> ${this.escHTML(result.owner_desk)}</div>` : '';
+      const due = result.sla_due_at ? `<div class="tc-row"><span class="tc-key">SLA due:</span> ${this.escHTML(String(result.sla_due_at).slice(0,10))}</div>` : '';
+      return `<div class="tool-card"><div class="tc-header">✅ Registered${dup}</div>
+        <div class="tc-row"><span class="tc-key">reference:</span> <b>${this.escHTML(result.record_id)}</b></div>
+        ${desk}${due}</div>`;
+    }
+    if (toolId === 'records.track') {
+      const rec = result.record || {};
+      const rrid = rec.recordId || rec.record_id;
+      if (!result.ok || !rrid) {
+        return `<div class="tool-card"><div class="tc-header">🔍 Not found</div>
+          <div class="tc-row">${this.escHTML(result.message || 'No record for that reference.')}</div></div>`;
+      }
+      const lv = rec.level || rec.current_level;
+      const lvl = lv ? `<div class="tc-row"><span class="tc-key">level:</span> L${this.escHTML(String(lv))}</div>` : '';
+      return `<div class="tool-card"><div class="tc-header">🔍 ${this.escHTML(rrid)}</div>
+        <div class="tc-row"><span class="tc-key">status:</span> ${this.escHTML(rec.status || '')}</div>${lvl}</div>`;
+    }
+    if (toolId === 'records.list_mine' && Array.isArray(result.records)) {
+      if (!result.records.length) return `<div class="tool-card"><div class="tc-header">📁 No records yet</div></div>`;
+      const rows = result.records.slice(0,8).map(r =>
+        `<div class="tc-row"><span class="tc-key">${this.escHTML(r.recordId||r.record_id||'')}</span> ${this.escHTML(r.status||'')}</div>`).join('');
+      return `<div class="tool-card"><div class="tc-header">📁 Your records (${result.count})</div>${rows}</div>`;
+    }
+    if (toolId === 'schemes.search' && Array.isArray(result.schemes)) {
+      const rows = result.schemes.slice(0,5).map(s =>
+        `<div class="tc-row">📜 ${this.escHTML(s.name||s.scheme_id||'')}</div>`).join('');
+      return `<div class="tool-card"><div class="tc-header">Schemes found (${result.count||result.schemes.length})</div>${rows}</div>`;
+    }
+    if (toolId === 'schemes.apply' && result.record_id) {
+      const docs = Array.isArray(result.documents_required) && result.documents_required.length
+        ? `<div class="tc-row"><span class="tc-key">documents:</span> ${this.escHTML(result.documents_required.join(', '))}</div>` : '';
+      return `<div class="tool-card"><div class="tc-header">✅ Application submitted</div>
+        <div class="tc-row"><span class="tc-key">scheme:</span> ${this.escHTML(result.scheme||'')}</div>
+        <div class="tc-row"><span class="tc-key">reference:</span> <b>${this.escHTML(result.record_id)}</b></div>${docs}</div>`;
+    }
+    if (toolId === 'projects.track' && result.project) {
+      const p = result.project;
+      const pct = (p.percent_complete!=null) ? `<div class="tc-row"><span class="tc-key">progress:</span> ${this.escHTML(String(p.percent_complete))}%</div>` : '';
+      return `<div class="tool-card"><div class="tc-header">🚧 ${this.escHTML(p.name||p.project_id||'Project')}</div>
+        <div class="tc-row"><span class="tc-key">status:</span> ${this.escHTML(p.status||'')}</div>${pct}</div>`;
+    }
+    return `<div class="tool-card">${this.escHTML(msg.text)}</div>`;
+  }
+
+  _audioPlayButton(url) {
+    return `<button class="voice-play" data-audio="${url}" style="vertical-align:middle;">▶</button>
+            <span style="font-size:11px;color:#888;margin-left:6px;">Listen to reply</span>`;
+  }
+
+  _bindAudioButtons(rootEl) {
+    rootEl.querySelectorAll('.voice-play[data-audio]').forEach(btn => {
+      if (btn._bound) return; btn._bound = true;
+      btn.addEventListener('click', () => {
+        const url = btn.dataset.audio; if (!url) return;
+        const audio = new Audio(`${BACKEND_BASE}${url}`);
+        btn.textContent = '⏸'; audio.play();
+        audio.onended = () => btn.textContent = '▶';
+      });
+    });
+  }
+
+  _appendToolResultCard(m) {
+    const ma = document.getElementById(`ma-${this.id}`); if (!ma) return;
+    const tmp = document.createElement('div');
+    const html = this._tplToolResult({type:'tool_result', text:m.text, extra:m.extra}).trim();
+    if (!html) return;
+    tmp.innerHTML = html;
+    while (tmp.firstChild) ma.appendChild(tmp.firstChild);
+    ma.scrollTop = ma.scrollHeight;
+  }
+
+  _bindChat() {
+    const bot = this.curBot;
+    const ma = document.getElementById(`ma-${this.id}`);
+    const tx = document.getElementById(`tx-${this.id}`);
+    const fab = document.getElementById(`fab-${this.id}`);
+    const fabI = document.getElementById(`fab-icon-${this.id}`);
+    const att = document.getElementById(`att-${this.id}`);
+    const callBtn = document.getElementById(`call-${this.id}`);
+
+    if (ma) { ma.scrollTop = ma.scrollHeight; this._bindAudioButtons(ma); }
+
+    const SEND_ICON = `<svg viewBox="0 0 24 24" width="22" height="22" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>`;
+    const MIC_ICON = `<svg viewBox="0 0 24 24" width="22" height="22" fill="white"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>`;
+
+    document.getElementById(`bk-${this.id}`).addEventListener('click', () => {
+      this.state = 'chatlist'; this.curBot = null; this.render();
+    });
+    if (callBtn) callBtn.addEventListener('click', () => this.startCall());
+
+    const sendCurrent = async () => {
+      const t = tx.value.trim(); if (!t) return;
+      tx.value = ''; tx.style.height = 'auto';
+      await this.sendText(bot.id, t);
+      fab.dataset.mode = 'mic'; fabI.innerHTML = MIC_ICON;
+    };
+    tx.addEventListener('input', () => {
+      tx.style.height = 'auto';
+      tx.style.height = Math.min(tx.scrollHeight, 100) + 'px';
+      if (tx.value.trim()) { fab.dataset.mode = 'send'; fabI.innerHTML = SEND_ICON; }
+      else { fab.dataset.mode = 'mic'; fabI.innerHTML = MIC_ICON; }
+    });
+    tx.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendCurrent(); }
+    });
+
+    if (att) att.addEventListener('click', () => this._showAttachMenu(bot));
+
+    let holdTimer = null, holding = false, suppressClick = false;
+    const startRecord = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+        this.mediaRecorder = new MediaRecorder(stream);
+        this.audioChunks = [];
+        this.mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) this.audioChunks.push(e.data); };
+        this.recordStart = Date.now();
+        this.mediaRecorder.start();
+        fab.classList.add('recording');
+        this._showRecBanner();
+      } catch (err) { alert('Mic permission required'); }
+    };
+    const stopRecord = async () => {
+      if (!this.mediaRecorder || this.mediaRecorder.state !== 'recording') {
+        fab.classList.remove('recording'); this._hideRecBanner(); return;
+      }
+      const mr = this.mediaRecorder;
+      const stopPromise = new Promise(res => mr.onstop = res);
+      mr.stop(); mr.stream.getTracks().forEach(t => t.stop());
+      await stopPromise;
+      fab.classList.remove('recording'); this._hideRecBanner();
+      const dur = (Date.now() - this.recordStart) / 1000;
+      if (dur < 0.4) return;
+      const rawBlob = new Blob(this.audioChunks, {type: mr.mimeType || 'audio/webm'});
+      // Sarvam Saaras rejects webm/opus — convert to 16 kHz mono WAV before upload
+      let wavBlob;
+      try {
+        wavBlob = await blobToWav(rawBlob, 16000);
+      } catch (e) {
+        this._appendMsgEl({role:'system', type:'system_event',
+          text:`Audio conversion failed: ${e.message}`, time:this.now()});
+        return;
+      }
+      await this.sendVoice(bot.id, wavBlob, 'audio/wav', dur);
+    };
+    fab.addEventListener('mousedown', () => { if (fab.dataset.mode==='send') return;
+      holding=false; suppressClick=false;
+      holdTimer = setTimeout(()=>{ holding=true; suppressClick=true; startRecord(); }, 280);
+    });
+    fab.addEventListener('mouseup', async () => { clearTimeout(holdTimer);
+      if (holding) { holding=false; await stopRecord(); }
+    });
+    fab.addEventListener('mouseleave', async () => {
+      if (holding) { clearTimeout(holdTimer); holding=false; await stopRecord(); }
+    });
+    fab.addEventListener('click', () => {
+      if (suppressClick) { suppressClick=false; return; }
+      if (fab.dataset.mode === 'send') sendCurrent();
+    });
+    fab.addEventListener('touchstart', (e) => { e.preventDefault();
+      if (fab.dataset.mode==='send') return;
+      holding=false; suppressClick=false;
+      holdTimer = setTimeout(()=>{ holding=true; suppressClick=true; startRecord(); }, 280);
+    }, {passive:false});
+    fab.addEventListener('touchend', async (e) => { e.preventDefault();
+      clearTimeout(holdTimer);
+      if (holding) { holding=false; await stopRecord(); }
+      else if (fab.dataset.mode==='send' && !suppressClick) sendCurrent();
+    }, {passive:false});
+  }
+
+  _showAttachMenu(bot) {
+    const sc = document.getElementById(`sc-${this.id}`);
+    if (!sc) return;
+    sc.querySelectorAll('.attach-menu').forEach(x => x.remove());
+    const opts = [
+      {icon:'🆔', label:'PAN',      bg:'#1565C0', hint:'pan'},
+      {icon:'🪪', label:'Aadhaar',  bg:'#E65100', hint:'aadhaar'},
+      {icon:'🚗', label:'DL',       bg:'#BF360C', hint:'driving_licence'},
+      {icon:'🗳️', label:'Voter ID', bg:'#6A1B9A', hint:'voter_id'},
+      {icon:'🌾', label:'Patta',    bg:'#4CAF50', hint:'patta_image'},
+      {icon:'🍚', label:'Ration',   bg:'#4E342E', hint:'ration_card_image'},
+      {icon:'📷', label:'Photo',    bg:'#e91e63', hint:null},
+      {icon:'📄', label:'Auto',     bg:'#3f51b5', hint:'auto'},
+    ];
+    const menu = document.createElement('div');
+    menu.className = 'attach-menu';
+    menu.innerHTML = opts.map(o => `
+      <button class="attach-opt" data-hint="${o.hint||''}">
+        <div class="attach-opt-icon" style="background:${o.bg}20">${o.icon}</div>
+        <span>${o.label}</span>
+      </button>`).join('');
+    menu.addEventListener('click', (e) => {
+      const btn = e.target.closest('.attach-opt');
+      if (!btn) return;
+      const hint = btn.dataset.hint || null;
+      menu.remove();
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*,application/pdf,.pdf,.png,.jpg,.jpeg,.webp,.heic,.heif,.tif,.tiff';
+      input.onchange = (ev) => {
+        const file = ev.target.files[0];
+        if (file) this.sendDocument(bot.id, file, hint);
+      };
+      input.click();
+    });
+    setTimeout(() => document.addEventListener('click', function h(e){
+      if (!menu.contains(e.target)) { menu.remove(); document.removeEventListener('click',h); }
+    }), 100);
+    sc.appendChild(menu);
+  }
+
+  _appendMsgEl(msg) {
+    const ma = document.getElementById(`ma-${this.id}`);
+    if (!ma) return;
+    const tmp = document.createElement('div');
+    tmp.innerHTML = this._tplMsg(msg).trim();
+    while (tmp.firstChild) ma.appendChild(tmp.firstChild);
+    ma.scrollTop = ma.scrollHeight;
+    this._bindAudioButtons(ma);
+  }
+
+  _showRecBanner() {
+    const sc = document.getElementById(`sc-${this.id}`);
+    if (!sc) return;
+    sc.querySelectorAll('.rec-banner').forEach(x => x.remove());
+    const el = document.createElement('div');
+    el.className = 'rec-banner'; el.textContent = '🎙 Recording… release to send';
+    sc.appendChild(el);
+  }
+  _hideRecBanner() { document.querySelectorAll(`#sc-${this.id} .rec-banner`).forEach(x => x.remove()); }
+
+  _showToast(bot, text) {
+    const screen = document.getElementById(`ph-${this.id}`).querySelector('.phone-screen');
+    screen.querySelectorAll('.notif-toast').forEach(t => t.remove());
+    const t = document.createElement('div');
+    t.className = 'notif-toast';
+    t.innerHTML = `<div class="toast-icon" style="background:${bot.bg}">${bot.emoji}</div>
+      <div class="toast-body"><div class="toast-name">${this.escHTML(bot.name)}</div>
+        <div class="toast-msg">${this.escHTML(text)}</div></div>`;
+    t.addEventListener('click', () => {
+      t.classList.add('hiding'); setTimeout(()=>t.remove(), 300);
+      if (this.state !== 'chat') this.openChat(bot);
+    });
+    screen.appendChild(t);
+    setTimeout(() => { if (!t.isConnected) return; t.classList.add('hiding'); setTimeout(()=>t.remove(), 300); }, 4500);
+  }
+}
+
+let phoneCount = 0;
+const phones = {};
+function addPhone() {
+  phoneCount++;
+  const id = phoneCount;
+  const hint = document.getElementById('empty-hint');
+  if (hint) hint.style.opacity = '0';
+  const wrapper = document.createElement('div');
+  wrapper.className = 'phone-wrapper';
+  wrapper.innerHTML = `<div class="phone-frame" id="ph-${id}"><div class="phone-screen"></div></div>
+                       <div class="phone-label" id="lbl-${id}"><span class="lbl-text">Phone #${id}</span><button class="phone-del" title="Remove this profile" onclick="removePhone(${id})">&times;</button></div>`;
+  document.getElementById('phones-container').appendChild(wrapper);
+  const sim = new PhoneSimulator(id);
+  phones[id] = sim;
+  sim.render();
+  setTimeout(() => wrapper.scrollIntoView({behavior:'smooth', inline:'end', block:'center'}), 100);
+}
+
+function removePhone(id) {
+  const sim = phones[id];
+  const who = (sim && sim.phone) ? `+91 ${sim.phone}` : `Phone #${id}`;
+  if (!confirm(`Remove ${who} from the simulator?\n\nThis closes the chat window here. (Stored records on the backend are not deleted.)`)) return;
+  if (sim) {
+    // Mark destroyed so the WS auto-reconnect handler won't revive it.
+    sim._destroyed = true;
+    sim.state = 'onboarding';
+    try { if (sim.activeCall) sim.endCall(); } catch (e) {}
+    if (sim.callTimer) { try { clearInterval(sim.callTimer); } catch (e) {} sim.callTimer = null; }
+    try { if (sim._stopCallVAD) sim._stopCallVAD(); } catch (e) {}
+    if (sim.ws) {
+      try { sim.ws.onclose = null; sim.ws.onmessage = null; sim.ws.onerror = null; sim.ws.close(); } catch (e) {}
+      sim.ws = null;
+    }
+    try { if (sim.mediaRecorder && sim.mediaRecorder.state !== 'inactive') sim.mediaRecorder.stop(); } catch (e) {}
+    try { if (sim.callRecorder && sim.callRecorder.state !== 'inactive') sim.callRecorder.stop(); } catch (e) {}
+  }
+  delete phones[id];
+  const frame = document.getElementById(`ph-${id}`);
+  const wrap = frame && frame.closest('.phone-wrapper');
+  if (wrap) wrap.remove();
+  // Bring back the empty-state hint when the last phone is removed.
+  if (Object.keys(phones).length === 0) {
+    const hint = document.getElementById('empty-hint');
+    if (hint) hint.style.opacity = '';
+  }
+}
+setInterval(() => {
+  const t = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false});
+  document.querySelectorAll('.status-time').forEach(el => el.textContent = t);
+}, 30000);
+</script>
+</body>
+</html>
